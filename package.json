@@ -1,0 +1,49 @@
+{
+    "name": "datastore-pubsub",
+    "version": "0.0.0",
+    "description": "Responsible for providing an interface-datastore compliant api to pubsub",
+    "leadMaintainer": "Vasco Santos <vasco.santos@moxy.studio>",
+    "main": "src/index.js",
+    "scripts": {
+        "build": "aegir build",
+        "lint": "aegir lint",
+        "release": "aegir release --target node",
+        "release-minor": "aegir release --type minor",
+        "release-major": "aegir release --type major",
+        "test": "aegir test -t node"
+    },
+    "pre-push": [
+        "lint",
+        "test"
+    ],
+    "repository": {
+        "type": "git",
+        "url": "git+https://github.com/ipfs/js-datastore-pubsub.git"
+    },
+    "keywords": [
+        "ipfs",
+        "datastore",
+        "pubsub"
+    ],
+    "author": "Vasco Santos <vasco.santos@moxy.studio>",
+    "license": "MIT",
+    "bugs": {
+        "url": "https://github.com/ipfs/js-datastore-pubsub/issues"
+    },
+    "homepage": "https://github.com/ipfs/js-datastore-pubsub#readme",
+    "dependencies": {
+        "debug": "^3.1.0",
+        "err-code": "^1.1.2",
+        "interface-datastore": "^0.4.2",
+        "libp2p-record": "^0.5.1"
+    },
+    "devDependencies": {
+        "aegir": "^13.1.0",
+        "chai": "^4.1.2",
+        "detect-node": "^2.0.4",
+        "dirty-chai": "^2.0.1",
+        "ipfs": "^0.31.5",
+        "ipfsd-ctl": "^0.39.1",
+        "libp2p": "^0.23.1"
+    }
+}

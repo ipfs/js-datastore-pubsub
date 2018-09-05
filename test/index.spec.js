@@ -1,0 +1,474 @@
+/* eslint-env mocha */
+'use strict'
+
+const chai = require('chai')
+const dirtyChai = require('dirty-chai')
+const expect = chai.expect
+chai.use(dirtyChai)
+
+const isNode = require('detect-node')
+const parallel = require('async/parallel')
+const series = require('async/series')
+
+const { Key } = require('interface-datastore')
+const { Record } = require('libp2p-record')
+
+const DatastorePubsub = require('../src')
+const { connect, waitFor, waitForPeerToSubscribe, spawnDaemon, stopDaemon } = require('./utils')
+
+// Always returning the expected values
+// Valid record and select the new one
+const smoothValidator = {
+  validate: (data, peerId, callback) => {
+    callback(null, true)
+  },
+  select: (receivedRecod, currentRecord, callback) => {
+    callback(null, 0)
+  }
+}
+
+describe('datastore-pubsub', function () {
+  this.timeout(60 * 1000)
+
+  if (!isNode) return
+
+  let ipfsdA = null
+  let ipfsdB = null
+  let ipfsdAId = null
+  let ipfsdBId = null
+
+  // spawn daemon
+  beforeEach(function (done) {
+    parallel([
+      (cb) => spawnDaemon(cb),
+      (cb) => spawnDaemon(cb)
+    ], (err, daemons) => {
+      expect(err).to.not.exist()
+
+      ipfsdA = daemons[0]
+      ipfsdB = daemons[1]
+
+      parallel([
+        (cb) => ipfsdA.api.id(cb),
+        (cb) => ipfsdB.api.id(cb)
+      ], (err, ids) => {
+        expect(err).to.not.exist()
+
+        ipfsdAId = ids[0]
+        ipfsdBId = ids[1]
+
+        connect(ipfsdA, ipfsdAId, ipfsdB, ipfsdBId, done)
+      })
+    })
+  })
+
+  let pubsubA = null
+  let datastoreA = null
+  let peerIdA = null
+  let privKeyA = null
+  let pubKeyA = null
+
+  let datastoreB = null
+  let peerIdB = null
+  let pubsubB = null
+
+  // create DatastorePubsub instances
+  beforeEach(function (done) {
+    pubsubA = ipfsdA.api._libp2pNode.pubsub
+    datastoreA = ipfsdA.api._repo.datastore
+    peerIdA = ipfsdA.api._peerInfo.id
+    privKeyA = peerIdA.privKey
+    pubKeyA = peerIdA.pubKey
+
+    pubsubB = ipfsdB.api._libp2pNode.pubsub
+    datastoreB = ipfsdB.api._repo.datastore
+    peerIdB = ipfsdB.api._peerInfo.id
+
+    done()
+  })
+
+  const value = 'value'
+  const keyRef = 'key'
+  const key = new Key(keyRef)
+  let record = null
+  let serializedRecord = null
+
+  // prepare Record
+  beforeEach(function (done) {
+    record = new Record(key.toBuffer(), Buffer.from(value), peerIdA)
+
+    // sign and serialize record
+    record.serializeSigned(privKeyA, (err, serialized) => {
+      expect(err).to.not.exist()
+      serializedRecord = serialized
+      done()
+    })
+  })
+
+  afterEach(function (done) {
+    parallel([
+      (cb) => stopDaemon(ipfsdA, cb),
+      (cb) => stopDaemon(ipfsdB, cb)
+    ], done)
+  })
+
+  it('should subscribe the topic, but receive error as no entry is stored locally', function (done) {
+    const dsPubsubA = new DatastorePubsub(pubsubA, datastoreA, peerIdA, smoothValidator)
+
+    pubsubA.ls((err, res) => {
+      expect(err).to.not.exist()
+      expect(res).to.exist()
+      expect(res).to.not.include(`/${keyRef}`) // not subscribed key reference yet
+
+      dsPubsubA.get(key, (err) => {
+        expect(err).to.exist() // not locally stored record
+
+        pubsubA.ls((err, res) => {
+          expect(err).to.not.exist()
+          expect(res).to.exist()
+          expect(res).to.include(`/${keyRef}`) // subscribed key reference
+          done()
+        })
+      })
+    })
+  })
+
+  it('should put correctly to daemon A and daemon B should not receive it without subscribing', function (done) {
+    const dsPubsubA = new DatastorePubsub(pubsubA, datastoreA, peerIdA, smoothValidator)
+    const dsPubsubB = new DatastorePubsub(pubsubB, datastoreB, peerIdB, smoothValidator)
+
+    pubsubB.ls((err, res) => {
+      expect(err).to.not.exist()
+      expect(res).to.exist()
+      expect(res).to.not.include(`/${keyRef}`) // not subscribed
+
+      dsPubsubA.put(key, serializedRecord, (err) => {
+        expect(err).to.not.exist()
+        dsPubsubB.get(key, (err, res) => {
+          expect(err).to.exist() // did not receive record
+          expect(res).to.not.exist()
+          done()
+        })
+      })
+    })
+  })
+
+  it('should put correctly to daemon A and daemon B should receive it as it tried to get it first and subscribed it', function (done) {
+    const dsPubsubA = new DatastorePubsub(pubsubA, datastoreA, peerIdA, smoothValidator)
+    const dsPubsubB = new DatastorePubsub(pubsubB, datastoreB, peerIdB, smoothValidator)
+    const topic = `/${keyRef}`
+    let receivedMessage = false
+
+    function messageHandler () {
+      receivedMessage = true
+    }
+
+    pubsubB.ls((err, res) => {
+      expect(err).to.not.exist()
+      expect(res).to.exist()
+      expect(res).to.not.include(topic) // not subscribed
+
+      dsPubsubB.get(key, (err, res) => {
+        expect(err).to.exist()
+        expect(res).to.not.exist() // not value available, but subscribed now
+
+        series([
+          (cb) => waitForPeerToSubscribe(topic, ipfsdBId, ipfsdA, cb),
+          // subscribe in order to understand when the message arrive to the node
+          (cb) => pubsubB.subscribe(topic, messageHandler, cb),
+          (cb) => dsPubsubA.put(key, serializedRecord, cb),
+          // wait until message arrives
+          (cb) => waitFor(() => receivedMessage === true, cb),
+          // get from datastore
+          (cb) => dsPubsubB.get(key, cb)
+        ], (err, res) => {
+          expect(err).to.not.exist()
+          expect(res).to.exist()
+          expect(res[4]).to.exist()
+
+          const receivedRecord = Record.deserialize(res[4])
+
+          expect(receivedRecord.value.toString()).to.equal(value)
+
+          receivedRecord.verifySignature(pubKeyA, (err) => {
+            expect(err).to.not.exist()
+            done()
+          })
+        })
+      })
+    })
+  })
+
+  it('should fail to get a record if no validator is provided', function (done) {
+    const dsPubsubA = new DatastorePubsub(pubsubA, datastoreA, peerIdA, smoothValidator)
+    const dsPubsubB = new DatastorePubsub(pubsubB, datastoreB, peerIdB) // no validator
+    const topic = `/${keyRef}`
+    let receivedMessage = false
+
+    function messageHandler () {
+      receivedMessage = true
+    }
+
+    dsPubsubB.get(key, (err, res) => {
+      expect(err).to.exist()
+      expect(res).to.not.exist() // not value available, but subscribed now
+
+      series([
+        (cb) => waitForPeerToSubscribe(topic, ipfsdBId, ipfsdA, cb),
+        // subscribe in order to understand when the message arrive to the node
+        (cb) => pubsubB.subscribe(topic, messageHandler, cb),
+        (cb) => dsPubsubA.put(key, serializedRecord, cb),
+        // wait until message arrives
+        (cb) => waitFor(() => receivedMessage === true, cb),
+        // get from datastore
+        (cb) => dsPubsubB.get(key, cb)
+      ], (err, res) => {
+        // No record received, in spite of message received
+        expect(err).to.exist() // message was discarded as a result of no validator available
+        expect(res[4]).to.not.exist()
+        done()
+      })
+    })
+  })
+
+  it('should get a record if no selector is provided but there is no local data', function (done) {
+    const customValidator = {
+      validate: (data, peerId, callback) => {
+        callback(null, true)
+      },
+      select: undefined
+    }
+    const dsPubsubA = new DatastorePubsub(pubsubA, datastoreA, peerIdA, smoothValidator)
+    const dsPubsubB = new DatastorePubsub(pubsubB, datastoreB, peerIdB, customValidator)
+    const topic = `/${keyRef}`
+    let receivedMessage = false
+
+    function messageHandler () {
+      receivedMessage = true
+    }
+
+    dsPubsubB.get(key, (err, res) => {
+      expect(err).to.exist()
+      expect(res).to.not.exist() // not value available, but subscribed now
+
+      series([
+        (cb) => waitForPeerToSubscribe(topic, ipfsdBId, ipfsdA, cb),
+        // subscribe in order to understand when the message arrive to the node
+        (cb) => pubsubB.subscribe(topic, messageHandler, cb),
+        (cb) => dsPubsubA.put(key, serializedRecord, cb),
+        // wait until message arrives
+        (cb) => waitFor(() => receivedMessage === true, cb),
+        // get from datastore
+        (cb) => dsPubsubB.get(key, cb)
+      ], (err, res) => {
+        expect(err).to.not.exist()
+        expect(res[4]).to.exist()
+        done()
+      })
+    })
+  })
+
+  it('should not store new records if no selector is provided and there is a local record available', function (done) {
+    const customValidator = {
+      validate: (data, peerId, callback) => {
+        callback(null, true)
+      },
+      select: undefined
+    }
+
+    const newValue = 'new value'
+    const record = new Record(key.toBuffer(), Buffer.from(newValue), peerIdA)
+    let newSerializedRecord
+
+    const dsPubsubA = new DatastorePubsub(pubsubA, datastoreA, peerIdA, smoothValidator)
+    const dsPubsubB = new DatastorePubsub(pubsubB, datastoreB, peerIdB, customValidator)
+    const topic = `/${keyRef}`
+    let receivedMessage = false
+
+    function messageHandler () {
+      receivedMessage = true
+    }
+
+    record.serializeSigned(privKeyA, (err, serialized) => {
+      expect(err).to.not.exist()
+      newSerializedRecord = serialized
+
+      dsPubsubB.get(key, (err, res) => {
+        expect(err).to.exist()
+        expect(res).to.not.exist() // not value available, but subscribed now
+
+        series([
+          (cb) => waitForPeerToSubscribe(topic, ipfsdBId, ipfsdA, cb),
+          // subscribe in order to understand when the message arrive to the node
+          (cb) => pubsubB.subscribe(topic, messageHandler, cb),
+          (cb) => dsPubsubA.put(key, serializedRecord, cb),
+          // wait until message arrives
+          (cb) => waitFor(() => receivedMessage === true, cb),
+          (cb) => dsPubsubA.put(key, newSerializedRecord, cb), // put new serializedRecord
+          // wait until message arrives
+          (cb) => waitFor(() => receivedMessage === true, cb),
+          // get from datastore
+          (cb) => dsPubsubB.get(key, cb)
+        ], (err, res) => {
+          expect(err).to.not.exist() // message was discarded as a result of no validator available
+          expect(res[6]).to.exist()
+
+          const receivedRecord = Record.deserialize(res[6])
+
+          expect(receivedRecord.value.toString()).to.not.equal(newValue) // not equal to the last value
+          done()
+        })
+      })
+    })
+  })
+
+  it('should fail if it fails to validate the record', function (done) {
+    const customValidator = {
+      validate: (data, peerId, callback) => {
+        callback(null, false) // return false validation
+      },
+      select: undefined
+    }
+    const dsPubsubA = new DatastorePubsub(pubsubA, datastoreA, peerIdA, smoothValidator)
+    const dsPubsubB = new DatastorePubsub(pubsubB, datastoreB, peerIdB, customValidator)
+    const topic = `/${keyRef}`
+    let receivedMessage = false
+
+    function messageHandler () {
+      receivedMessage = true
+    }
+
+    dsPubsubB.get(key, (err, res) => {
+      expect(err).to.exist()
+      expect(res).to.not.exist() // not value available, but subscribed now
+
+      series([
+        (cb) => waitForPeerToSubscribe(topic, ipfsdBId, ipfsdA, cb),
+        // subscribe in order to understand when the message arrive to the node
+        (cb) => pubsubB.subscribe(topic, messageHandler, cb),
+        (cb) => dsPubsubA.put(key, serializedRecord, cb),
+        // wait until message arrives
+        (cb) => waitFor(() => receivedMessage === true, cb),
+        // get from datastore
+        (cb) => dsPubsubB.get(key, cb)
+      ], (err, res) => {
+        // No record received, in spite of message received
+        expect(err).to.exist() // message was discarded as a result of failing the validation
+        expect(res[4]).to.not.exist()
+        done()
+      })
+    })
+  })
+
+  it('should fail if the selector does not select the new record', function (done) {
+    const customValidator = {
+      validate: (data, peerId, callback) => {
+        callback(null, true)
+      },
+      select: (receivedRecod, currentRecord, callback) => {
+        callback(null, 1) // current record is the newer
+      }
+    }
+
+    const newValue = 'new value'
+    const record = new Record(key.toBuffer(), Buffer.from(newValue), peerIdA)
+    let newSerializedRecord
+
+    const dsPubsubA = new DatastorePubsub(pubsubA, datastoreA, peerIdA, smoothValidator)
+    const dsPubsubB = new DatastorePubsub(pubsubB, datastoreB, peerIdB, customValidator)
+    const topic = `/${keyRef}`
+    let receivedMessage = false
+
+    function messageHandler () {
+      receivedMessage = true
+    }
+
+    record.serializeSigned(privKeyA, (err, serialized) => {
+      expect(err).to.not.exist()
+      newSerializedRecord = serialized
+
+      dsPubsubB.get(key, (err, res) => {
+        expect(err).to.exist()
+        expect(res).to.not.exist() // not value available, but subscribed now
+
+        series([
+          (cb) => waitForPeerToSubscribe(topic, ipfsdBId, ipfsdA, cb),
+          // subscribe in order to understand when the message arrive to the node
+          (cb) => pubsubB.subscribe(topic, messageHandler, cb),
+          (cb) => dsPubsubA.put(key, serializedRecord, cb),
+          // wait until message arrives
+          (cb) => waitFor(() => receivedMessage === true, cb),
+          (cb) => dsPubsubA.put(key, newSerializedRecord, cb), // put new serializedRecord
+          // wait until message arrives
+          (cb) => waitFor(() => receivedMessage === true, cb),
+          // get from datastore
+          (cb) => dsPubsubB.get(key, cb)
+        ], (err, res) => {
+          expect(err).to.not.exist() // message was discarded as a result of no validator available
+          expect(res[6]).to.exist()
+
+          const receivedRecord = Record.deserialize(res[6])
+
+          expect(receivedRecord.value.toString()).to.not.equal(newValue) // not equal to the last value
+          done()
+        })
+      })
+    })
+  })
+
+  it('should get the new record if the selector selects it as the newest one', function (done) {
+    const customValidator = {
+      validate: (data, peerId, callback) => {
+        callback(null, true)
+      },
+      select: (receivedRecod, currentRecord, callback) => {
+        callback(null, 0) // received record is the newer
+      }
+    }
+
+    const newValue = 'new value'
+    const record = new Record(key.toBuffer(), Buffer.from(newValue), peerIdA)
+    let newSerializedRecord
+
+    const dsPubsubA = new DatastorePubsub(pubsubA, datastoreA, peerIdA, smoothValidator)
+    const dsPubsubB = new DatastorePubsub(pubsubB, datastoreB, peerIdB, customValidator)
+    const topic = `/${keyRef}`
+    let receivedMessage = false
+
+    function messageHandler () {
+      receivedMessage = true
+    }
+
+    record.serializeSigned(privKeyA, (err, serialized) => {
+      expect(err).to.not.exist()
+      newSerializedRecord = serialized
+
+      dsPubsubB.get(key, (err, res) => {
+        expect(err).to.exist()
+        expect(res).to.not.exist() // not value available, but it is subscribed now
+
+        series([
+          (cb) => waitForPeerToSubscribe(topic, ipfsdBId, ipfsdA, cb),
+          // subscribe in order to understand when the message arrive to the node
+          (cb) => pubsubB.subscribe(topic, messageHandler, cb),
+          (cb) => dsPubsubA.put(key, serializedRecord, cb),
+          // wait until message arrives
+          (cb) => waitFor(() => receivedMessage === true, cb),
+          (cb) => dsPubsubA.put(key, newSerializedRecord, cb), // put new serializedRecord
+          // wait until message arrives
+          (cb) => waitFor(() => receivedMessage === true, cb),
+          // get from datastore
+          (cb) => dsPubsubB.get(key, cb)
+        ], (err, res) => {
+          expect(err).to.not.exist() // message was discarded as a result of no validator available
+          expect(res[6]).to.exist()
+
+          const receivedRecord = Record.deserialize(res[6])
+
+          expect(receivedRecord.value.toString()).to.equal(newValue) // equal to the last value
+          done()
+        })
+      })
+    })
+  })
+})
