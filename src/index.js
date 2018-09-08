@@ -4,6 +4,7 @@ const { Record } = require('libp2p-record')
 const { Key } = require('interface-datastore')
 const errcode = require('err-code')
 
+const assert = require('assert')
 const debug = require('debug')
 const log = debug('datastore-pubsub:publisher')
 log.error = debug('datastore-pubsub:publisher:error')
@@ -22,6 +23,10 @@ class DatastorePubsub {
    * @memberof DatastorePubsub
    */
   constructor (pubsub, datastore, peerId, validator) {
+    assert.equal(typeof validator, 'object', 'missing validator')
+    assert.equal(typeof validator.validate, 'function', 'missing validate function')
+    assert.equal(typeof validator.select, 'function', 'missing select function')
+
     this._pubsub = pubsub
     this._datastore = datastore
     this._peerId = peerId
@@ -53,7 +58,7 @@ class DatastorePubsub {
       return callback(errcode(new Error(errMsg), 'ERR_INVALID_VALUE_RECEIVED'))
     }
 
-    const stringifiedTopic = key._buf.toString()
+    const stringifiedTopic = key.toString()
 
     log(`publish value for topic ${stringifiedTopic}`)
 
@@ -75,7 +80,7 @@ class DatastorePubsub {
       return callback(errcode(new Error(errMsg), 'ERR_INVALID_DATASTORE_KEY'))
     }
 
-    const stringifiedTopic = key._buf.toString()
+    const stringifiedTopic = key.toString()
 
     log(`subscribe values for key ${stringifiedTopic}`)
 
@@ -96,7 +101,7 @@ class DatastorePubsub {
   _getLocal (key, callback) {
     this._datastore.get(key, (err, dsVal) => {
       if (err) {
-        const errMsg = `local record requested was not found for ${key._buf.toString()}`
+        const errMsg = `local record requested was not found for ${key.toString()}`
 
         log.error(errMsg)
         return callback(errcode(new Error(errMsg), 'ERR_NO_LOCAL_RECORD_FOUND'))
@@ -136,25 +141,11 @@ class DatastorePubsub {
 
   // Validate record according to the received validation function
   _validateRecord (value, peerId, callback) {
-    if (typeof this._validator !== 'object' || typeof this._validator.validate !== 'function') {
-      const errMsg = `validator does not have the validate function`
-
-      log.error(errMsg)
-      return callback(errcode(new Error(errMsg), 'ERR_NO_VALIDATE_FUNCTION_FOUND'))
-    }
-
     this._validator.validate(value, peerId, callback)
   }
 
   // Select the best record according to the received select function.
   _selectRecord (receivedRecord, currentRecord, callback) {
-    if (typeof this._validator !== 'object' || typeof this._validator.select !== 'function') {
-      const errMsg = `validator does not have the select function`
-
-      log.error(errMsg)
-      return callback(errcode(new Error(errMsg), 'ERR_NO_SELECT_FUNCTION_FOUND'))
-    }
-
     this._validator.select(receivedRecord, currentRecord, (err, res) => {
       if (err) {
         log.error(err)
