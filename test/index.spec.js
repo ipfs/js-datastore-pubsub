@@ -97,8 +97,8 @@ describe('datastore-pubsub', function () {
   // prepare Record
   beforeEach(function (done) {
     keyRef = `key${testCounter}`
-    key = new Key(keyRef)
-    record = new Record(key.toBuffer(), Buffer.from(value), peerIdA)
+    key = (new Key(keyRef)).toBuffer()
+    record = new Record(key, Buffer.from(value), peerIdA)
 
     // sign and serialize record
     record.serializeSigned(privKeyA, (err, serialized) => {
@@ -297,7 +297,7 @@ describe('datastore-pubsub', function () {
     })
   })
 
-  it('should fail if the selector does not select the new record', function (done) {
+  it('should get the second record if the selector selects it as the newest one', function (done) {
     const customValidator = {
       validate: (data, peerId, callback) => {
         callback(null, true)
@@ -308,7 +308,7 @@ describe('datastore-pubsub', function () {
     }
 
     const newValue = 'new value'
-    const record = new Record(key.toBuffer(), Buffer.from(newValue), peerIdA)
+    const record = new Record(key, Buffer.from(newValue), peerIdA)
     let newSerializedRecord
 
     const dsPubsubA = new DatastorePubsub(pubsubA, datastoreA, peerIdA, smoothValidator)
@@ -364,7 +364,7 @@ describe('datastore-pubsub', function () {
     }
 
     const newValue = 'new value'
-    const record = new Record(key.toBuffer(), Buffer.from(newValue), peerIdA)
+    const record = new Record(key, Buffer.from(newValue), peerIdA)
     let newSerializedRecord
 
     const dsPubsubA = new DatastorePubsub(pubsubA, datastoreA, peerIdA, smoothValidator)

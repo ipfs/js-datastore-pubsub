@@ -2,8 +2,9 @@
 
 const { Record } = require('libp2p-record')
 const { Key } = require('interface-datastore')
-const errcode = require('err-code')
+const { encodeBase32 } = require('./utils')
 
+const errcode = require('err-code')
 const assert = require('assert')
 const debug = require('debug')
 const log = debug('datastore-pubsub:publisher')
@@ -38,13 +39,13 @@ class DatastorePubsub {
 
   /**
    * Publishes a value through pubsub.
-   * @param {Key} key identifier of the value to be published.
+   * @param {Buffer} key identifier of the value to be published.
    * @param {Buffer} val value to be propagated.
    * @param {function(Error)} callback
    * @returns {void}
    */
   put (key, val, callback) {
-    if (!(key instanceof Key)) {
+    if (!Buffer.isBuffer(key)) {
       const errMsg = `datastore key does not have a valid format`
 
       log.error(errMsg)
@@ -68,12 +69,12 @@ class DatastorePubsub {
 
   /**
    * Try to subscribe a topic with Pubsub and returns the local value if available.
-   * @param {Key} key identifier of the value to be subscribed.
+   * @param {Buffer} key identifier of the value to be subscribed.
    * @param {function(Error, Buffer)} callback
    * @returns {void}
    */
   get (key, callback) {
-    if (!(key instanceof Key)) {
+    if (!Buffer.isBuffer(key)) {
       const errMsg = `datastore key does not have a valid format`
 
       log.error(errMsg)
@@ -81,8 +82,6 @@ class DatastorePubsub {
     }
 
     const stringifiedTopic = key.toString()
-
-    log(`subscribe values for key ${stringifiedTopic}`)
 
     // Subscribe
     this._pubsub.subscribe(stringifiedTopic, this._handleSubscription, (err) => {
@@ -92,6 +91,7 @@ class DatastorePubsub {
         log.error(errMsg)
         return callback(errcode(new Error(errMsg), 'ERR_SUBSCRIBING_TOPIC'))
       }
+      log(`subscribed values for key ${stringifiedTopic}`)
 
       this._getLocal(key, callback)
     })
@@ -99,9 +99,12 @@ class DatastorePubsub {
 
   // Get record from local datastore
   _getLocal (key, callback) {
-    this._datastore.get(key, (err, dsVal) => {
+    // encode key - base32(/ipns/{cid})
+    const routingKey = new Key('/' + encodeBase32(key), false)
+
+    this._datastore.get(routingKey, (err, dsVal) => {
       if (err) {
-        const errMsg = `local record requested was not found for ${key.toString()}`
+        const errMsg = `local record requested was not found for ${routingKey.toString()}`
 
         log.error(errMsg)
         return callback(errcode(new Error(errMsg), 'ERR_NO_LOCAL_RECORD_FOUND'))
@@ -134,7 +137,7 @@ class DatastorePubsub {
     // verify if the received record is better
     this._isBetter(key, data, (err, res) => {
       if (!err && res) {
-        this._storeRecord(key, data)
+        this._storeRecord(Buffer.from(key), data)
       }
     })
   }
@@ -181,7 +184,7 @@ class DatastorePubsub {
       // Get Local record
       const dsKey = new Key(key)
 
-      this._getLocal(dsKey, (err, res) => {
+      this._getLocal(dsKey.toBuffer(), (err, res) => {
         // if the old one is invalid, the new one is *always* better
         if (err) {
           return callback(null, true)
@@ -202,7 +205,10 @@ class DatastorePubsub {
 
   // add record to datastore
   _storeRecord (key, data) {
-    this._datastore.put(key, data, (err) => {
+    // encode key - base32(/ipns/{cid})
+    const routingKey = new Key('/' + encodeBase32(key), false)
+
+    this._datastore.put(routingKey, data, (err) => {
       if (err) {
         log.error(`record for ${key.toString()} could not be stored in the routing`)
         return

@@ -65,7 +65,7 @@ Try to subscribe a topic with Pubsub and receive the current local value if avai
 
 Arguments:
 
-- `key` (`Key` [Instance](https://github.com/ipfs/interface-datastore/blob/master/src/key.js)): a key representing a unique identifier of the object to subscribe.
+- `key` (Buffer): a key representing a unique identifier of the object to subscribe.
 - `callback` (function): operation result.
 
 `callback` must follow `function (err, data) {}` signature, where `err` is an error if the operation was not successful. If no `err` is received, a `data` is received containing the most recent known record stored (`Buffer`).
@@ -80,7 +80,7 @@ Publishes a value through pubsub.
 
 Arguments:
 
-- `key` (`Key` [Instance](https://github.com/ipfs/interface-datastore/blob/master/src/key.js)): a key representing a unique identifier of the object to publish.
+- `key` (Buffer): a key representing a unique identifier of the object to publish.
 - `val` (Buffer): value to be propagated.
 - `callback` (function): operation result.
 
