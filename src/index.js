@@ -10,8 +10,8 @@ const debug = require('debug')
 const log = debug('datastore-pubsub:publisher')
 log.error = debug('datastore-pubsub:publisher:error')
 
-// DatastorePubsub is responsible for providing an [interface-datastore]{@link https://github.com/ipfs/interface-datastore}
-// compliant api for pubsub.
+// DatastorePubsub is responsible for providing an api for pubsub to be used as a datastore with
+// [TieredDatastore]{@link https://github.com/ipfs/js-datastore-core/blob/master/src/tiered.js}
 class DatastorePubsub {
   /**
    * Creates an instance of DatastorePubsub.
@@ -227,6 +227,48 @@ class DatastorePubsub {
 
       log(`record for ${key.toString()} was stored in the datastore`)
     })
+  }
+
+  open (callback) {
+    const errMsg = `open function was not implemented yet`
+
+    log.error(errMsg)
+    return callback(errcode(new Error(errMsg), 'ERR_NOT_IMPLEMENTED_YET'))
+  }
+
+  has (key, callback) {
+    const errMsg = `has function was not implemented yet`
+
+    log.error(errMsg)
+    return callback(errcode(new Error(errMsg), 'ERR_NOT_IMPLEMENTED_YET'))
+  }
+
+  delete (key, callback) {
+    const errMsg = `delete function was not implemented yet`
+
+    log.error(errMsg)
+    return callback(errcode(new Error(errMsg), 'ERR_NOT_IMPLEMENTED_YET'))
+  }
+
+  close (callback) {
+    const errMsg = `close function was not implemented yet`
+
+    log.error(errMsg)
+    return callback(errcode(new Error(errMsg), 'ERR_NOT_IMPLEMENTED_YET'))
+  }
+
+  batch () {
+    const errMsg = `batch function was not implemented yet`
+
+    log.error(errMsg)
+    throw errcode(new Error(errMsg), 'ERR_NOT_IMPLEMENTED_YET')
+  }
+
+  query () {
+    const errMsg = `query function was not implemented yet`
+
+    log.error(errMsg)
+    throw errcode(new Error(errMsg), 'ERR_NOT_IMPLEMENTED_YET')
   }
 }
 

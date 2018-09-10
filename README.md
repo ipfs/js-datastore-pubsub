@@ -6,7 +6,7 @@
 [![standard-readme](https://img.shields.io/badge/standard--readme-OK-green.svg?style=flat-square)](https://github.com/RichardLitt/standard-readme)
 [![js-standard-style](https://img.shields.io/badge/code%20style-standard-brightgreen.svg?style=flat-square)](https://github.com/feross/standard)
 
-> provides an implementation of an interface-datastore compliant api for pubsub
+> provides an implementation of an api for pubsub to be used as a datastore with TieredDatastore
 
 ## Lead Maintainer
 
