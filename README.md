@@ -86,6 +86,18 @@ Arguments:
 
 `callback` must follow `function (err) {}` signature, where `err` is an error if the operation was not successful.
 
+#### Unsubscribe
+
+```js
+dsPubsub.unsubscribe(key, callback)
+```
+
+Unsubscribe a previously subscribe value.
+
+Arguments:
+
+- `key` (Buffer): a key representing a unique identifier of the object to publish.
+
 ## Contribute
 
 Feel free to join in. All welcome. Open an [issue](https://github.com/ipfs/js-ipns/issues)!

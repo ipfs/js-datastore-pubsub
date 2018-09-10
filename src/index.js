@@ -97,6 +97,17 @@ class DatastorePubsub {
     })
   }
 
+  /**
+   * Unsubscribe topic.
+   * @param {Buffer} key identifier of the value to unsubscribe.
+   * @returns {void}
+   */
+  unsubscribe (key) {
+    const stringifiedTopic = key.toString()
+
+    this._pubsub.unsubscribe(stringifiedTopic, this._handleSubscription)
+  }
+
   // Get record from local datastore
   _getLocal (key, callback) {
     // encode key - base32(/ipns/{cid})
