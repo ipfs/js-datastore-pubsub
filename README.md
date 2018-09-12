@@ -37,7 +37,7 @@ const dsPubsub = new DatastorePubsub(pubsub, datastore, peerId, validator)
 #### Setup
 
 ```js
-new DatastorePubsub(pubsub, datastore, peerId, validator)
+new DatastorePubsub(pubsub, datastore, peerId, validator, subscriptionKeyFn)
 ```
 
 Creates a DatastorePubsub instance.
@@ -48,6 +48,7 @@ Arguments:
 - `datastore` (Object): datastore compliant with [interface-datastore](https://github.com/ipfs/interface-datastore), such as [datastore-fs](https://github.com/ipfs/js-datastore-fs).
 - `peerId` (`PeerId` [Instance](https://github.com/libp2p/js-peer-id)): peer identifier object.
 - `validator` (Object): containing validate function and select function.
+- `subscriptionKeyFn` (function): function to manipulate the key topic received according to the needs, as well as to block the message received to be published.
 
 Note: `validator` object must be composed by two functions, `validate (data, peerId, callback)` and `select (receivedRecod, currentRecord, callback)`. `validate` aims to verify if a new record received by pubsub is valid to be stored locally by the node. If it is valid and the node already has a local record stored, `select` is the function provided to be responsible for deciding which record is the best (newer) between the already stored and the received through pubsub. A `validator` example can be found at: TODO (js-ipns)
 

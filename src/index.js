@@ -21,17 +21,20 @@ class DatastorePubsub {
    * @param {Object} validator - validator functions.
    * @param {function(record, peerId, callback)} validator.validate - function to validate a record.
    * @param {function(received, current, callback)} validator.select - function to select the newest between two records.
+   * @param {function(key, callback)} subscriptionKeyFn - function to manipulate the key topic received before processing it.
    * @memberof DatastorePubsub
    */
-  constructor (pubsub, datastore, peerId, validator) {
+  constructor (pubsub, datastore, peerId, validator, subscriptionKeyFn) {
     assert.equal(typeof validator, 'object', 'missing validator')
     assert.equal(typeof validator.validate, 'function', 'missing validate function')
     assert.equal(typeof validator.select, 'function', 'missing select function')
+    subscriptionKeyFn && assert.equal(typeof subscriptionKeyFn, 'function', 'invalid subscriptionKeyFn received')
 
     this._pubsub = pubsub
     this._datastore = datastore
     this._peerId = peerId
     this._validator = validator
+    this._handleSubscriptionKeyFn = subscriptionKeyFn
 
     // Bind _handleSubscription function, which is called by pubsub.
     this._handleSubscription = this._handleSubscription.bind(this)
@@ -145,7 +148,22 @@ class DatastorePubsub {
       return
     }
 
-    // verify if the received record is better
+    if (this._handleSubscriptionKeyFn) {
+      this._handleSubscriptionKeyFn(key, (err, res) => {
+        if (err) {
+          log.error('message discarded by the subscriptionKeyFn')
+          return
+        }
+
+        this._storeIfSubscriptionIsBetter(res, data)
+      })
+    } else {
+      this._storeIfSubscriptionIsBetter(key, data)
+    }
+  }
+
+  // Store the received record if it is better than the current stored
+  _storeIfSubscriptionIsBetter (key, data) {
     this._isBetter(key, data, (err, res) => {
       if (!err && res) {
         this._storeRecord(Buffer.from(key), data)
