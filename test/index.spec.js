@@ -5,6 +5,7 @@ const chai = require('chai')
 const dirtyChai = require('dirty-chai')
 const expect = chai.expect
 chai.use(dirtyChai)
+const sinon = require('sinon')
 
 const isNode = require('detect-node')
 const parallel = require('async/parallel')
@@ -492,6 +493,22 @@ describe('datastore-pubsub', function () {
           expect(receivedRecord.value.toString()).to.equal(value)
           done()
         })
+      })
+    })
+  })
+
+  it('should subscribe a topic only once', function (done) {
+    const dsPubsubA = new DatastorePubsub(pubsubA, datastoreA, peerIdA, smoothValidator)
+
+    sinon.spy(pubsubA, 'subscribe')
+
+    dsPubsubA.get(key, (err) => {
+      expect(err).to.exist() // not locally stored record
+      dsPubsubA.get(key, (err) => {
+        expect(err).to.exist() // not locally stored record
+        expect(pubsubA.subscribe.calledOnce).to.equal(true)
+
+        done()
       })
     })
   })
