@@ -10,7 +10,8 @@
     "release": "aegir release --target node",
     "release-minor": "aegir release --type minor",
     "release-major": "aegir release --type major",
-    "test": "aegir test -t node"
+    "test": "aegir test -t node",
+    "test:node": "aegir test -t node"
   },
   "pre-push": [
     "lint"
