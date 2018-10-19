@@ -65,8 +65,6 @@ describe('datastore-pubsub', function () {
   let pubsubA = null
   let datastoreA = null
   let peerIdA = null
-  let privKeyA = null
-  let pubKeyA = null
 
   let datastoreB = null
   let peerIdB = null
@@ -77,8 +75,6 @@ describe('datastore-pubsub', function () {
     pubsubA = ipfsdA.api._libp2pNode.pubsub
     datastoreA = ipfsdA.api._repo.datastore
     peerIdA = ipfsdA.api._peerInfo.id
-    privKeyA = peerIdA.privKey
-    pubKeyA = peerIdA.pubKey
 
     pubsubB = ipfsdB.api._libp2pNode.pubsub
     datastoreB = ipfsdB.api._repo.datastore
@@ -98,14 +94,10 @@ describe('datastore-pubsub', function () {
   beforeEach(function (done) {
     keyRef = `key${testCounter}`
     key = (new Key(keyRef)).toBuffer()
-    record = new Record(key, Buffer.from(value), peerIdA)
+    record = new Record(key, Buffer.from(value))
 
-    // sign and serialize record
-    record.serializeSigned(privKeyA, (err, serialized) => {
-      expect(err).to.not.exist()
-      serializedRecord = serialized
-      done()
-    })
+    serializedRecord = record.serialize()
+    done()
   })
 
   afterEach(function (done) {
@@ -197,11 +189,7 @@ describe('datastore-pubsub', function () {
           const receivedRecord = Record.deserialize(res[4])
 
           expect(receivedRecord.value.toString()).to.equal(value)
-
-          receivedRecord.verifySignature(pubKeyA, (err) => {
-            expect(err).to.not.exist()
-            done()
-          })
+          done()
         })
       })
     })
@@ -308,8 +296,8 @@ describe('datastore-pubsub', function () {
     }
 
     const newValue = 'new value'
-    const record = new Record(key, Buffer.from(newValue), peerIdA)
-    let newSerializedRecord
+    const record = new Record(key, Buffer.from(newValue))
+    const newSerializedRecord = record.serialize()
 
     const dsPubsubA = new DatastorePubsub(pubsubA, datastoreA, peerIdA, smoothValidator)
     const dsPubsubB = new DatastorePubsub(pubsubB, datastoreB, peerIdB, customValidator)
@@ -320,35 +308,30 @@ describe('datastore-pubsub', function () {
       receivedMessage = true
     }
 
-    record.serializeSigned(privKeyA, (err, serialized) => {
-      expect(err).to.not.exist()
-      newSerializedRecord = serialized
+    dsPubsubB.get(key, (err, res) => {
+      expect(err).to.exist()
+      expect(res).to.not.exist() // not value available, but subscribed now
 
-      dsPubsubB.get(key, (err, res) => {
-        expect(err).to.exist()
-        expect(res).to.not.exist() // not value available, but subscribed now
+      series([
+        (cb) => waitForPeerToSubscribe(topic, ipfsdBId, ipfsdA, cb),
+        // subscribe in order to understand when the message arrive to the node
+        (cb) => pubsubB.subscribe(topic, messageHandler, cb),
+        (cb) => dsPubsubA.put(key, serializedRecord, cb),
+        // wait until message arrives
+        (cb) => waitFor(() => receivedMessage === true, cb),
+        (cb) => dsPubsubA.put(key, newSerializedRecord, cb), // put new serializedRecord
+        // wait until message arrives
+        (cb) => waitFor(() => receivedMessage === true, cb),
+        // get from datastore
+        (cb) => dsPubsubB.get(key, cb)
+      ], (err, res) => {
+        expect(err).to.not.exist() // message was discarded as a result of no validator available
+        expect(res[6]).to.exist()
 
-        series([
-          (cb) => waitForPeerToSubscribe(topic, ipfsdBId, ipfsdA, cb),
-          // subscribe in order to understand when the message arrive to the node
-          (cb) => pubsubB.subscribe(topic, messageHandler, cb),
-          (cb) => dsPubsubA.put(key, serializedRecord, cb),
-          // wait until message arrives
-          (cb) => waitFor(() => receivedMessage === true, cb),
-          (cb) => dsPubsubA.put(key, newSerializedRecord, cb), // put new serializedRecord
-          // wait until message arrives
-          (cb) => waitFor(() => receivedMessage === true, cb),
-          // get from datastore
-          (cb) => dsPubsubB.get(key, cb)
-        ], (err, res) => {
-          expect(err).to.not.exist() // message was discarded as a result of no validator available
-          expect(res[6]).to.exist()
+        const receivedRecord = Record.deserialize(res[6])
 
-          const receivedRecord = Record.deserialize(res[6])
-
-          expect(receivedRecord.value.toString()).to.not.equal(newValue) // not equal to the last value
-          done()
-        })
+        expect(receivedRecord.value.toString()).to.not.equal(newValue) // not equal to the last value
+        done()
       })
     })
   })
@@ -364,8 +347,8 @@ describe('datastore-pubsub', function () {
     }
 
     const newValue = 'new value'
-    const record = new Record(key, Buffer.from(newValue), peerIdA)
-    let newSerializedRecord
+    const record = new Record(key, Buffer.from(newValue))
+    const newSerializedRecord = record.serialize()
 
     const dsPubsubA = new DatastorePubsub(pubsubA, datastoreA, peerIdA, smoothValidator)
     const dsPubsubB = new DatastorePubsub(pubsubB, datastoreB, peerIdB, customValidator)
@@ -376,35 +359,30 @@ describe('datastore-pubsub', function () {
       receivedMessage = true
     }
 
-    record.serializeSigned(privKeyA, (err, serialized) => {
-      expect(err).to.not.exist()
-      newSerializedRecord = serialized
+    dsPubsubB.get(key, (err, res) => {
+      expect(err).to.exist()
+      expect(res).to.not.exist() // not value available, but it is subscribed now
 
-      dsPubsubB.get(key, (err, res) => {
-        expect(err).to.exist()
-        expect(res).to.not.exist() // not value available, but it is subscribed now
+      series([
+        (cb) => waitForPeerToSubscribe(topic, ipfsdBId, ipfsdA, cb),
+        // subscribe in order to understand when the message arrive to the node
+        (cb) => pubsubB.subscribe(topic, messageHandler, cb),
+        (cb) => dsPubsubA.put(key, serializedRecord, cb),
+        // wait until message arrives
+        (cb) => waitFor(() => receivedMessage === true, cb),
+        (cb) => dsPubsubA.put(key, newSerializedRecord, cb), // put new serializedRecord
+        // wait until message arrives
+        (cb) => waitFor(() => receivedMessage === true, cb),
+        // get from datastore
+        (cb) => dsPubsubB.get(key, cb)
+      ], (err, res) => {
+        expect(err).to.not.exist() // message was discarded as a result of no validator available
+        expect(res[6]).to.exist()
 
-        series([
-          (cb) => waitForPeerToSubscribe(topic, ipfsdBId, ipfsdA, cb),
-          // subscribe in order to understand when the message arrive to the node
-          (cb) => pubsubB.subscribe(topic, messageHandler, cb),
-          (cb) => dsPubsubA.put(key, serializedRecord, cb),
-          // wait until message arrives
-          (cb) => waitFor(() => receivedMessage === true, cb),
-          (cb) => dsPubsubA.put(key, newSerializedRecord, cb), // put new serializedRecord
-          // wait until message arrives
-          (cb) => waitFor(() => receivedMessage === true, cb),
-          // get from datastore
-          (cb) => dsPubsubB.get(key, cb)
-        ], (err, res) => {
-          expect(err).to.not.exist() // message was discarded as a result of no validator available
-          expect(res[6]).to.exist()
+        const receivedRecord = Record.deserialize(res[6])
 
-          const receivedRecord = Record.deserialize(res[6])
-
-          expect(receivedRecord.value.toString()).to.equal(newValue) // equal to the last value
-          done()
-        })
+        expect(receivedRecord.value.toString()).to.equal(newValue) // equal to the last value
+        done()
       })
     })
   })
