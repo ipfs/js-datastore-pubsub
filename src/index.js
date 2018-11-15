@@ -212,7 +212,7 @@ class DatastorePubsub {
     }
 
     // validate received record
-    this._validateRecord(receivedRecord.value, receivedRecord.author, (err, valid) => {
+    this._validateRecord(receivedRecord.value, key, (err, valid) => {
       // If not valid, it is not better than the one currently available
       if (err || !valid) {
         const errMsg = 'record received through pubsub is not valid'
