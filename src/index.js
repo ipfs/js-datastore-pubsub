@@ -1,7 +1,7 @@
 'use strict'
 
 const { Key } = require('interface-datastore')
-const { encodeBase32 } = require('./utils')
+const { encodeBase32, keyToTopic, topicToKey } = require('./utils')
 
 const errcode = require('err-code')
 const assert = require('assert')
@@ -61,7 +61,7 @@ class DatastorePubsub {
       return callback(errcode(new Error(errMsg), 'ERR_INVALID_VALUE_RECEIVED'))
     }
 
-    const stringifiedTopic = key.toString()
+    const stringifiedTopic = keyToTopic(key)
 
     log(`publish value for topic ${stringifiedTopic}`)
 
@@ -83,7 +83,7 @@ class DatastorePubsub {
       return callback(errcode(new Error(errMsg), 'ERR_INVALID_DATASTORE_KEY'))
     }
 
-    const stringifiedTopic = key.toString()
+    const stringifiedTopic = keyToTopic(key)
 
     this._pubsub.ls((err, res) => {
       if (err) {
@@ -116,7 +116,7 @@ class DatastorePubsub {
    * @returns {void}
    */
   unsubscribe (key) {
-    const stringifiedTopic = key.toString()
+    const stringifiedTopic = keyToTopic(key)
 
     this._pubsub.unsubscribe(stringifiedTopic, this._handleSubscription)
   }
@@ -154,7 +154,7 @@ class DatastorePubsub {
   // handles pubsub subscription messages
   _handleSubscription (msg) {
     const { data, from, topicIDs } = msg
-    const key = topicIDs[0]
+    const key = topicToKey(topicIDs[0])
 
     log(`message received for ${key} topic`)
 
