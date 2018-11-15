@@ -86,17 +86,28 @@ class DatastorePubsub {
 
     const stringifiedTopic = key.toString()
 
-    // Subscribe
-    this._pubsub.subscribe(stringifiedTopic, this._handleSubscription, (err) => {
+    this._pubsub.ls((err, res) => {
       if (err) {
-        const errMsg = `cannot subscribe topic ${stringifiedTopic}`
-
-        log.error(errMsg)
-        return callback(errcode(new Error(errMsg), 'ERR_SUBSCRIBING_TOPIC'))
+        return callback(err)
       }
-      log(`subscribed values for key ${stringifiedTopic}`)
 
-      this._getLocal(key, callback)
+      // If already subscribed, just try to get it
+      if (res && Array.isArray(res) && res.indexOf(stringifiedTopic) > -1) {
+        return this._getLocal(key, callback)
+      }
+
+      // Subscribe
+      this._pubsub.subscribe(stringifiedTopic, this._handleSubscription, (err) => {
+        if (err) {
+          const errMsg = `cannot subscribe topic ${stringifiedTopic}`
+
+          log.error(errMsg)
+          return callback(errcode(new Error(errMsg), 'ERR_SUBSCRIBING_TOPIC'))
+        }
+        log(`subscribed values for key ${stringifiedTopic}`)
+
+        this._getLocal(key, callback)
+      })
     })
   }
 
