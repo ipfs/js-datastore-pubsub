@@ -1,3 +1,13 @@
+<a name="0.0.5"></a>
+## [0.0.5](https://github.com/ipfs/js-datastore-pubsub/compare/v0.0.4...v0.0.5) (2018-11-20)
+
+
+### Bug Fixes
+
+* libp2p record with no author ([a73d1a0](https://github.com/ipfs/js-datastore-pubsub/commit/a73d1a0))
+
+
+
 <a name="0.0.4"></a>
 ## [0.0.4](https://github.com/ipfs/js-datastore-pubsub/compare/v0.0.3...v0.0.4) (2018-11-15)
 
