@@ -129,10 +129,16 @@ class DatastorePubsub {
 
     this._datastore.get(routingKey, (err, dsVal) => {
       if (err) {
+        if (err.code !== 'ERR_NOT_FOUND') {
+          const errMsg = `unexpected error getting the ipns record for ${routingKey.toString()}`
+
+          log.error(errMsg)
+          return callback(errcode(new Error(errMsg), 'ERR_UNEXPECTED_ERROR_GETTING_RECORD'))
+        }
         const errMsg = `local record requested was not found for ${routingKey.toString()}`
 
         log.error(errMsg)
-        return callback(errcode(new Error(errMsg), 'ERR_NO_LOCAL_RECORD_FOUND'))
+        return callback(errcode(new Error(errMsg), 'ERR_NOT_FOUND'))
       }
 
       if (!Buffer.isBuffer(dsVal)) {

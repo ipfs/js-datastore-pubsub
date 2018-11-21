@@ -123,6 +123,7 @@ describe('datastore-pubsub', function () {
 
       dsPubsubA.get(key, (err) => {
         expect(err).to.exist() // not locally stored record
+        expect(err.code).to.equal('ERR_NOT_FOUND')
 
         pubsubA.ls((err, res) => {
           expect(err).to.not.exist()
@@ -488,6 +489,19 @@ describe('datastore-pubsub', function () {
 
         done()
       })
+    })
+  })
+
+  it('should handle a unexpected error properly when getting from the datastore', function (done) {
+    const dsPubsubA = new DatastorePubsub(pubsubA, datastoreA, peerIdA, smoothValidator)
+    const stub = sinon.stub(dsPubsubA._datastore, 'get').callsArgWith(1, { code: 'RANDOM_ERR' })
+
+    dsPubsubA.get(key, (err) => {
+      expect(err).to.exist() // not locally stored record
+      expect(err.code).to.equal('ERR_UNEXPECTED_ERROR_GETTING_RECORD')
+
+      stub.restore()
+      done()
     })
   })
 })
