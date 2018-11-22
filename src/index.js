@@ -1,6 +1,5 @@
 'use strict'
 
-const { Record } = require('libp2p-record')
 const { Key } = require('interface-datastore')
 const { encodeBase32 } = require('./utils')
 
@@ -21,7 +20,7 @@ class DatastorePubsub {
    * @param {Object} validator - validator functions.
    * @param {function(record, peerId, callback)} validator.validate - function to validate a record.
    * @param {function(received, current, callback)} validator.select - function to select the newest between two records.
-   * @param {function(key, callback)} subscriptionKeyFn - function to manipulate the key topic received before processing it.
+   * @param {function(key, callback)} subscriptionKeyFn - optional function to manipulate the key topic received before processing it.
    * @memberof DatastorePubsub
    */
   constructor (pubsub, datastore, peerId, validator, subscriptionKeyFn) {
@@ -208,17 +207,8 @@ class DatastorePubsub {
 
   // Verify if the record received through pubsub is valid and better than the one currently stored
   _isBetter (key, val, callback) {
-    let receivedRecord
-
-    try {
-      receivedRecord = Record.deserialize(val)
-    } catch (err) {
-      log.error(err)
-      return callback(err)
-    }
-
     // validate received record
-    this._validateRecord(receivedRecord.value, key, (err, valid) => {
+    this._validateRecord(val, key, (err, valid) => {
       // If not valid, it is not better than the one currently available
       if (err || !valid) {
         const errMsg = 'record received through pubsub is not valid'
@@ -230,21 +220,19 @@ class DatastorePubsub {
       // Get Local record
       const dsKey = new Key(key)
 
-      this._getLocal(dsKey.toBuffer(), (err, res) => {
+      this._getLocal(dsKey.toBuffer(), (err, currentRecord) => {
         // if the old one is invalid, the new one is *always* better
         if (err) {
           return callback(null, true)
         }
 
         // if the same record, do not need to store
-        if (res.equals(val)) {
+        if (currentRecord.equals(val)) {
           return callback(null, false)
         }
 
-        const currentRecord = Record.deserialize(res)
-
         // verify if the received record should replace the current one
-        this._selectRecord(receivedRecord.value, currentRecord.value, callback)
+        this._selectRecord(val, currentRecord, callback)
       })
     })
   }
