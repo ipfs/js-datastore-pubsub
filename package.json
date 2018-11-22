@@ -34,10 +34,9 @@
   "dependencies": {
     "assert": "^1.4.1",
     "base32.js": "~0.1.0",
-    "debug": "^3.1.0",
+    "debug": "^4.1.0",
     "err-code": "^1.1.2",
-    "interface-datastore": "~0.4.2",
-    "libp2p-record": "~0.6.0"
+    "interface-datastore": "~0.6.0"
   },
   "devDependencies": {
     "aegir": "^17.1.0",
@@ -46,7 +45,8 @@
     "dirty-chai": "^2.0.1",
     "ipfs": "~0.33.1",
     "ipfsd-ctl": "~0.40.0",
-    "sinon": "^7.0.0"
+    "libp2p-record": "~0.6.1",
+    "sinon": "^7.1.1"
   },
   "contributors": [
     "Vasco Santos <vasco.santos@ua.pt>",

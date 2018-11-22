@@ -155,6 +155,48 @@ describe('datastore-pubsub', function () {
     })
   })
 
+  it('should validate if record content is the same', function (done) {
+    const customValidator = {
+      validate: (data, peerId, callback) => {
+        const receivedRecord = Record.deserialize(data)
+
+        expect(receivedRecord.value.toString()).to.equal(value) // validator should deserialize correctly
+        callback(null, receivedRecord.value.toString() === value)
+      },
+      select: (receivedRecod, currentRecord, callback) => {
+        callback(null, 0)
+      }
+    }
+    const dsPubsubA = new DatastorePubsub(pubsubA, datastoreA, peerIdA, smoothValidator)
+    const dsPubsubB = new DatastorePubsub(pubsubB, datastoreB, peerIdB, customValidator)
+    const topic = `/${keyRef}`
+    let receivedMessage = false
+
+    function messageHandler () {
+      receivedMessage = true
+    }
+
+    dsPubsubB.get(key, (err, res) => {
+      expect(err).to.exist()
+      expect(res).to.not.exist() // no value available, but subscribed now
+
+      series([
+        (cb) => waitForPeerToSubscribe(topic, ipfsdBId, ipfsdA, cb),
+        // subscribe in order to understand when the message arrive to the node
+        (cb) => pubsubB.subscribe(topic, messageHandler, cb),
+        (cb) => dsPubsubA.put(key, serializedRecord, cb),
+        // wait until message arrives
+        (cb) => waitFor(() => receivedMessage === true, cb),
+        // get from datastore
+        (cb) => dsPubsubB.get(key, cb)
+      ], (err, res) => {
+        expect(err).to.not.exist()
+        expect(res[4]).to.exist()
+        done()
+      })
+    })
+  })
+
   it('should put correctly to daemon A and daemon B should receive it as it tried to get it first and subscribed it', function (done) {
     const dsPubsubA = new DatastorePubsub(pubsubA, datastoreA, peerIdA, smoothValidator)
     const dsPubsubB = new DatastorePubsub(pubsubB, datastoreB, peerIdB, smoothValidator)
