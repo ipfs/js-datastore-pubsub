@@ -178,7 +178,7 @@ describe('datastore-pubsub', function () {
 
     dsPubsubB.get(key, (err, res) => {
       expect(err).to.exist()
-      expect(res).to.not.exist() // not value available, but subscribed now
+      expect(res).to.not.exist() // no value available, but subscribed now
 
       series([
         (cb) => waitForPeerToSubscribe(topic, ipfsdBId, ipfsdA, cb),
@@ -190,8 +190,7 @@ describe('datastore-pubsub', function () {
         // get from datastore
         (cb) => dsPubsubB.get(key, cb)
       ], (err, res) => {
-        // No record received, in spite of message received
-        expect(err).to.not.exist() // message was discarded as a result of failing the validation
+        expect(err).to.not.exist()
         expect(res[4]).to.exist()
         done()
       })
