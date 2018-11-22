@@ -1,3 +1,13 @@
+<a name="0.1.0"></a>
+# [0.1.0](https://github.com/ipfs/js-datastore-pubsub/compare/v0.0.6...v0.1.0) (2018-11-22)
+
+
+### Features
+
+* support all type of records ([#12](https://github.com/ipfs/js-datastore-pubsub/issues/12)) ([6c52248](https://github.com/ipfs/js-datastore-pubsub/commit/6c52248))
+
+
+
 <a name="0.0.6"></a>
 ## [0.0.6](https://github.com/ipfs/js-datastore-pubsub/compare/v0.0.5...v0.0.6) (2018-11-21)
 
