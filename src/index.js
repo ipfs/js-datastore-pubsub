@@ -24,10 +24,10 @@ class DatastorePubsub {
    * @memberof DatastorePubsub
    */
   constructor (pubsub, datastore, peerId, validator, subscriptionKeyFn) {
-    assert.equal(typeof validator, 'object', 'missing validator')
-    assert.equal(typeof validator.validate, 'function', 'missing validate function')
-    assert.equal(typeof validator.select, 'function', 'missing select function')
-    subscriptionKeyFn && assert.equal(typeof subscriptionKeyFn, 'function', 'invalid subscriptionKeyFn received')
+    assert.strictEqual(typeof validator, 'object', 'missing validator')
+    assert.strictEqual(typeof validator.validate, 'function', 'missing validate function')
+    assert.strictEqual(typeof validator.select, 'function', 'missing select function')
+    subscriptionKeyFn && assert.strictEqual(typeof subscriptionKeyFn, 'function', 'invalid subscriptionKeyFn received')
 
     this._pubsub = pubsub
     this._datastore = datastore
