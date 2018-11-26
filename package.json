@@ -33,11 +33,10 @@
   "homepage": "https://github.com/ipfs/js-datastore-pubsub#readme",
   "dependencies": {
     "assert": "^1.4.1",
-    "base32.js": "~0.1.0",
-    "base64url": "^3.0.0",
     "debug": "^4.1.0",
     "err-code": "^1.1.2",
-    "interface-datastore": "~0.6.0"
+    "interface-datastore": "~0.6.0",
+    "multibase": "~0.6.0"
   },
   "devDependencies": {
     "aegir": "^17.1.0",
