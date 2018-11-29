@@ -1,3 +1,13 @@
+<a name="0.1.1"></a>
+## [0.1.1](https://github.com/ipfs/js-datastore-pubsub/compare/v0.1.0...v0.1.1) (2018-11-29)
+
+
+### Features
+
+* encode record-store keys in pubsub ([#9](https://github.com/ipfs/js-datastore-pubsub/issues/9)) ([510bd2c](https://github.com/ipfs/js-datastore-pubsub/commit/510bd2c))
+
+
+
 <a name="0.1.0"></a>
 # [0.1.0](https://github.com/ipfs/js-datastore-pubsub/compare/v0.0.6...v0.1.0) (2018-11-22)
 
