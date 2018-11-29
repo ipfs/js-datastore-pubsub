@@ -15,6 +15,7 @@ const { Key } = require('interface-datastore')
 const { Record } = require('libp2p-record')
 
 const DatastorePubsub = require('../src')
+const { keyToTopic } = require('../src/utils')
 const { connect, waitFor, waitForPeerToSubscribe, spawnDaemon, stopDaemon } = require('./utils')
 
 // Always returning the expected values
@@ -115,11 +116,12 @@ describe('datastore-pubsub', function () {
 
   it('should subscribe the topic, but receive error as no entry is stored locally', function (done) {
     const dsPubsubA = new DatastorePubsub(pubsubA, datastoreA, peerIdA, smoothValidator)
+    const subsTopic = keyToTopic(`/${keyRef}`)
 
     pubsubA.ls((err, res) => {
       expect(err).to.not.exist()
       expect(res).to.exist()
-      expect(res).to.not.include(`/${keyRef}`) // not subscribed key reference yet
+      expect(res).to.not.include(subsTopic) // not subscribed key reference yet
 
       dsPubsubA.get(key, (err) => {
         expect(err).to.exist() // not locally stored record
@@ -128,7 +130,7 @@ describe('datastore-pubsub', function () {
         pubsubA.ls((err, res) => {
           expect(err).to.not.exist()
           expect(res).to.exist()
-          expect(res).to.include(`/${keyRef}`) // subscribed key reference
+          expect(res).to.include(subsTopic) // subscribed key reference
           done()
         })
       })
@@ -138,11 +140,12 @@ describe('datastore-pubsub', function () {
   it('should put correctly to daemon A and daemon B should not receive it without subscribing', function (done) {
     const dsPubsubA = new DatastorePubsub(pubsubA, datastoreA, peerIdA, smoothValidator)
     const dsPubsubB = new DatastorePubsub(pubsubB, datastoreB, peerIdB, smoothValidator)
+    const subsTopic = keyToTopic(`/${keyRef}`)
 
     pubsubB.ls((err, res) => {
       expect(err).to.not.exist()
       expect(res).to.exist()
-      expect(res).to.not.include(`/${keyRef}`) // not subscribed
+      expect(res).to.not.include(subsTopic) // not subscribed
 
       dsPubsubA.put(key, serializedRecord, (err) => {
         expect(err).to.not.exist()
@@ -169,7 +172,7 @@ describe('datastore-pubsub', function () {
     }
     const dsPubsubA = new DatastorePubsub(pubsubA, datastoreA, peerIdA, smoothValidator)
     const dsPubsubB = new DatastorePubsub(pubsubB, datastoreB, peerIdB, customValidator)
-    const topic = `/${keyRef}`
+    const subsTopic = keyToTopic(`/${keyRef}`)
     let receivedMessage = false
 
     function messageHandler () {
@@ -181,9 +184,9 @@ describe('datastore-pubsub', function () {
       expect(res).to.not.exist() // no value available, but subscribed now
 
       series([
-        (cb) => waitForPeerToSubscribe(topic, ipfsdBId, ipfsdA, cb),
+        (cb) => waitForPeerToSubscribe(subsTopic, ipfsdBId, ipfsdA, cb),
         // subscribe in order to understand when the message arrive to the node
-        (cb) => pubsubB.subscribe(topic, messageHandler, cb),
+        (cb) => pubsubB.subscribe(subsTopic, messageHandler, cb),
         (cb) => dsPubsubA.put(key, serializedRecord, cb),
         // wait until message arrives
         (cb) => waitFor(() => receivedMessage === true, cb),
@@ -200,7 +203,7 @@ describe('datastore-pubsub', function () {
   it('should put correctly to daemon A and daemon B should receive it as it tried to get it first and subscribed it', function (done) {
     const dsPubsubA = new DatastorePubsub(pubsubA, datastoreA, peerIdA, smoothValidator)
     const dsPubsubB = new DatastorePubsub(pubsubB, datastoreB, peerIdB, smoothValidator)
-    const topic = `/${keyRef}`
+    const subsTopic = keyToTopic(`/${keyRef}`)
     let receivedMessage = false
 
     function messageHandler () {
@@ -210,16 +213,16 @@ describe('datastore-pubsub', function () {
     pubsubB.ls((err, res) => {
       expect(err).to.not.exist()
       expect(res).to.exist()
-      expect(res).to.not.include(topic) // not subscribed
+      expect(res).to.not.include(subsTopic) // not subscribed
 
       dsPubsubB.get(key, (err, res) => {
         expect(err).to.exist()
         expect(res).to.not.exist() // not value available, but subscribed now
 
         series([
-          (cb) => waitForPeerToSubscribe(topic, ipfsdBId, ipfsdA, cb),
+          (cb) => waitForPeerToSubscribe(subsTopic, ipfsdBId, ipfsdA, cb),
           // subscribe in order to understand when the message arrive to the node
-          (cb) => pubsubB.subscribe(topic, messageHandler, cb),
+          (cb) => pubsubB.subscribe(subsTopic, messageHandler, cb),
           (cb) => dsPubsubA.put(key, serializedRecord, cb),
           // wait until message arrives
           (cb) => waitFor(() => receivedMessage === true, cb),
@@ -300,7 +303,7 @@ describe('datastore-pubsub', function () {
     }
     const dsPubsubA = new DatastorePubsub(pubsubA, datastoreA, peerIdA, smoothValidator)
     const dsPubsubB = new DatastorePubsub(pubsubB, datastoreB, peerIdB, customValidator)
-    const topic = `/${keyRef}`
+    const subsTopic = keyToTopic(`/${keyRef}`)
     let receivedMessage = false
 
     function messageHandler () {
@@ -312,9 +315,9 @@ describe('datastore-pubsub', function () {
       expect(res).to.not.exist() // not value available, but subscribed now
 
       series([
-        (cb) => waitForPeerToSubscribe(topic, ipfsdBId, ipfsdA, cb),
+        (cb) => waitForPeerToSubscribe(subsTopic, ipfsdBId, ipfsdA, cb),
         // subscribe in order to understand when the message arrive to the node
-        (cb) => pubsubB.subscribe(topic, messageHandler, cb),
+        (cb) => pubsubB.subscribe(subsTopic, messageHandler, cb),
         (cb) => dsPubsubA.put(key, serializedRecord, cb),
         // wait until message arrives
         (cb) => waitFor(() => receivedMessage === true, cb),
@@ -345,7 +348,7 @@ describe('datastore-pubsub', function () {
 
     const dsPubsubA = new DatastorePubsub(pubsubA, datastoreA, peerIdA, smoothValidator)
     const dsPubsubB = new DatastorePubsub(pubsubB, datastoreB, peerIdB, customValidator)
-    const topic = `/${keyRef}`
+    const subsTopic = keyToTopic(`/${keyRef}`)
     let receivedMessage = false
 
     function messageHandler () {
@@ -357,9 +360,9 @@ describe('datastore-pubsub', function () {
       expect(res).to.not.exist() // not value available, but subscribed now
 
       series([
-        (cb) => waitForPeerToSubscribe(topic, ipfsdBId, ipfsdA, cb),
+        (cb) => waitForPeerToSubscribe(subsTopic, ipfsdBId, ipfsdA, cb),
         // subscribe in order to understand when the message arrive to the node
-        (cb) => pubsubB.subscribe(topic, messageHandler, cb),
+        (cb) => pubsubB.subscribe(subsTopic, messageHandler, cb),
         (cb) => dsPubsubA.put(key, serializedRecord, cb),
         // wait until message arrives
         (cb) => waitFor(() => receivedMessage === true, cb),
@@ -396,7 +399,7 @@ describe('datastore-pubsub', function () {
 
     const dsPubsubA = new DatastorePubsub(pubsubA, datastoreA, peerIdA, smoothValidator)
     const dsPubsubB = new DatastorePubsub(pubsubB, datastoreB, peerIdB, customValidator)
-    const topic = `/${keyRef}`
+    const subsTopic = keyToTopic(`/${keyRef}`)
     let receivedMessage = false
 
     function messageHandler () {
@@ -408,9 +411,9 @@ describe('datastore-pubsub', function () {
       expect(res).to.not.exist() // not value available, but it is subscribed now
 
       series([
-        (cb) => waitForPeerToSubscribe(topic, ipfsdBId, ipfsdA, cb),
+        (cb) => waitForPeerToSubscribe(subsTopic, ipfsdBId, ipfsdA, cb),
         // subscribe in order to understand when the message arrive to the node
-        (cb) => pubsubB.subscribe(topic, messageHandler, cb),
+        (cb) => pubsubB.subscribe(subsTopic, messageHandler, cb),
         (cb) => dsPubsubA.put(key, serializedRecord, cb),
         // wait until message arrives
         (cb) => waitFor(() => receivedMessage === true, cb),
@@ -431,14 +434,14 @@ describe('datastore-pubsub', function () {
     })
   })
 
-  it('should subscribe the topic and after a message being received, discarde it using the subscriptionKeyFn', function (done) {
+  it('should subscribe the topic and after a message being received, discard it using the subscriptionKeyFn', function (done) {
     const subscriptionKeyFn = (topic, callback) => {
-      expect(topic).to.equal(key.toString())
+      expect(topic).to.equal(`/${keyRef}`)
       callback(new Error('DISCARD MESSAGE'))
     }
     const dsPubsubA = new DatastorePubsub(pubsubA, datastoreA, peerIdA, smoothValidator)
     const dsPubsubB = new DatastorePubsub(pubsubB, datastoreB, peerIdB, smoothValidator, subscriptionKeyFn)
-    const topic = `/${keyRef}`
+    const subsTopic = keyToTopic(`/${keyRef}`)
     let receivedMessage = false
 
     function messageHandler () {
@@ -448,16 +451,16 @@ describe('datastore-pubsub', function () {
     pubsubB.ls((err, res) => {
       expect(err).to.not.exist()
       expect(res).to.exist()
-      expect(res).to.not.include(topic) // not subscribed
+      expect(res).to.not.include(subsTopic) // not subscribed
 
       dsPubsubB.get(key, (err, res) => {
         expect(err).to.exist()
         expect(res).to.not.exist() // not value available, but subscribed now
 
         series([
-          (cb) => waitForPeerToSubscribe(topic, ipfsdBId, ipfsdA, cb),
+          (cb) => waitForPeerToSubscribe(subsTopic, ipfsdBId, ipfsdA, cb),
           // subscribe in order to understand when the message arrive to the node
-          (cb) => pubsubB.subscribe(topic, messageHandler, cb),
+          (cb) => pubsubB.subscribe(subsTopic, messageHandler, cb),
           (cb) => dsPubsubA.put(key, serializedRecord, cb),
           // wait until message arrives
           (cb) => waitFor(() => receivedMessage === true, cb),
@@ -478,7 +481,7 @@ describe('datastore-pubsub', function () {
     }
     const dsPubsubA = new DatastorePubsub(pubsubA, datastoreA, peerIdA, smoothValidator)
     const dsPubsubB = new DatastorePubsub(pubsubB, datastoreB, peerIdB, smoothValidator, subscriptionKeyFn)
-    const topic = `/${keyRef}`
+    const subsTopic = keyToTopic(`/${keyRef}`)
     const keyNew = Buffer.from(`${key.toString()}new`)
     let receivedMessage = false
 
@@ -489,16 +492,16 @@ describe('datastore-pubsub', function () {
     pubsubB.ls((err, res) => {
       expect(err).to.not.exist()
       expect(res).to.exist()
-      expect(res).to.not.include(topic) // not subscribed
+      expect(res).to.not.include(subsTopic) // not subscribed
 
       dsPubsubB.get(key, (err, res) => {
         expect(err).to.exist()
         expect(res).to.not.exist() // not value available, but subscribed now
 
         series([
-          (cb) => waitForPeerToSubscribe(topic, ipfsdBId, ipfsdA, cb),
+          (cb) => waitForPeerToSubscribe(subsTopic, ipfsdBId, ipfsdA, cb),
           // subscribe in order to understand when the message arrive to the node
-          (cb) => pubsubB.subscribe(topic, messageHandler, cb),
+          (cb) => pubsubB.subscribe(subsTopic, messageHandler, cb),
           (cb) => dsPubsubA.put(key, serializedRecord, cb),
           // wait until message arrives
           (cb) => waitFor(() => receivedMessage === true, cb),

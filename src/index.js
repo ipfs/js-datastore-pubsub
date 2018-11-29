@@ -1,7 +1,7 @@
 'use strict'
 
 const { Key } = require('interface-datastore')
-const { encodeBase32 } = require('./utils')
+const { encodeBase32, keyToTopic, topicToKey } = require('./utils')
 
 const errcode = require('err-code')
 const assert = require('assert')
@@ -24,10 +24,10 @@ class DatastorePubsub {
    * @memberof DatastorePubsub
    */
   constructor (pubsub, datastore, peerId, validator, subscriptionKeyFn) {
-    assert.equal(typeof validator, 'object', 'missing validator')
-    assert.equal(typeof validator.validate, 'function', 'missing validate function')
-    assert.equal(typeof validator.select, 'function', 'missing select function')
-    subscriptionKeyFn && assert.equal(typeof subscriptionKeyFn, 'function', 'invalid subscriptionKeyFn received')
+    assert.strictEqual(typeof validator, 'object', 'missing validator')
+    assert.strictEqual(typeof validator.validate, 'function', 'missing validate function')
+    assert.strictEqual(typeof validator.select, 'function', 'missing select function')
+    subscriptionKeyFn && assert.strictEqual(typeof subscriptionKeyFn, 'function', 'invalid subscriptionKeyFn received')
 
     this._pubsub = pubsub
     this._datastore = datastore
@@ -35,8 +35,8 @@ class DatastorePubsub {
     this._validator = validator
     this._handleSubscriptionKeyFn = subscriptionKeyFn
 
-    // Bind _handleSubscription function, which is called by pubsub.
-    this._handleSubscription = this._handleSubscription.bind(this)
+    // Bind _onMessage function, which is called by pubsub.
+    this._onMessage = this._onMessage.bind(this)
   }
 
   /**
@@ -61,7 +61,7 @@ class DatastorePubsub {
       return callback(errcode(new Error(errMsg), 'ERR_INVALID_VALUE_RECEIVED'))
     }
 
-    const stringifiedTopic = key.toString()
+    const stringifiedTopic = keyToTopic(key)
 
     log(`publish value for topic ${stringifiedTopic}`)
 
@@ -83,7 +83,7 @@ class DatastorePubsub {
       return callback(errcode(new Error(errMsg), 'ERR_INVALID_DATASTORE_KEY'))
     }
 
-    const stringifiedTopic = key.toString()
+    const stringifiedTopic = keyToTopic(key)
 
     this._pubsub.ls((err, res) => {
       if (err) {
@@ -96,7 +96,7 @@ class DatastorePubsub {
       }
 
       // Subscribe
-      this._pubsub.subscribe(stringifiedTopic, this._handleSubscription, (err) => {
+      this._pubsub.subscribe(stringifiedTopic, this._onMessage, (err) => {
         if (err) {
           const errMsg = `cannot subscribe topic ${stringifiedTopic}`
 
@@ -116,9 +116,9 @@ class DatastorePubsub {
    * @returns {void}
    */
   unsubscribe (key) {
-    const stringifiedTopic = key.toString()
+    const stringifiedTopic = keyToTopic(key)
 
-    this._pubsub.unsubscribe(stringifiedTopic, this._handleSubscription)
+    this._pubsub.unsubscribe(stringifiedTopic, this._onMessage)
   }
 
   // Get record from local datastore
@@ -152,9 +152,15 @@ class DatastorePubsub {
   }
 
   // handles pubsub subscription messages
-  _handleSubscription (msg) {
+  _onMessage (msg) {
     const { data, from, topicIDs } = msg
-    const key = topicIDs[0]
+    let key
+    try {
+      key = topicToKey(topicIDs[0])
+    } catch (err) {
+      log.error(err)
+      return
+    }
 
     log(`message received for ${key} topic`)
 
