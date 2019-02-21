@@ -74,11 +74,11 @@ describe('datastore-pubsub', function () {
 
   // create DatastorePubsub instances
   before(function (done) {
-    pubsubA = ipfsdA.api._libp2pNode.pubsub
+    pubsubA = ipfsdA.api.pubsub
     datastoreA = ipfsdA.api._repo.datastore
     peerIdA = ipfsdA.api._peerInfo.id
 
-    pubsubB = ipfsdB.api._libp2pNode.pubsub
+    pubsubB = ipfsdB.api.pubsub
     datastoreB = ipfsdB.api._repo.datastore
     peerIdB = ipfsdB.api._peerInfo.id
 
