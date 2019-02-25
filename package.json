@@ -33,20 +33,21 @@
   "homepage": "https://github.com/ipfs/js-datastore-pubsub#readme",
   "dependencies": {
     "assert": "^1.4.1",
-    "debug": "^4.1.0",
+    "async": "^2.6.2",
+    "debug": "^4.1.1",
     "err-code": "^1.1.2",
     "interface-datastore": "~0.6.0",
     "multibase": "~0.6.0"
   },
   "devDependencies": {
-    "aegir": "^17.1.0",
+    "aegir": "^18.1.1",
     "chai": "^4.2.0",
     "detect-node": "^2.0.4",
     "dirty-chai": "^2.0.1",
-    "ipfs": "~0.33.1",
-    "ipfsd-ctl": "~0.40.0",
-    "libp2p-record": "~0.6.1",
-    "sinon": "^7.1.1"
+    "ipfs": "~0.34.4",
+    "ipfsd-ctl": "~0.42.0",
+    "libp2p-record": "~0.6.2",
+    "sinon": "^7.2.4"
   },
   "contributors": [
     "Vasco Santos <vasco.santos@ua.pt>",
