@@ -43,22 +43,21 @@ class DatastorePubsub {
    * Publishes a value through pubsub.
    * @param {Buffer} key identifier of the value to be published.
    * @param {Buffer} val value to be propagated.
-   * @param {function(Error)} callback
-   * @returns {void}
+   * @returns {Promise}
    */
-  put (key, val, callback) {
+  async put (key, val) { // eslint-disable-line require-await
     if (!Buffer.isBuffer(key)) {
       const errMsg = `datastore key does not have a valid format`
 
       log.error(errMsg)
-      return callback(errcode(new Error(errMsg), 'ERR_INVALID_DATASTORE_KEY'))
+      throw errcode(new Error(errMsg), 'ERR_INVALID_DATASTORE_KEY')
     }
 
     if (!Buffer.isBuffer(val)) {
       const errMsg = `received value is not a buffer`
 
       log.error(errMsg)
-      return callback(errcode(new Error(errMsg), 'ERR_INVALID_VALUE_RECEIVED'))
+      throw errcode(new Error(errMsg), 'ERR_INVALID_VALUE_RECEIVED')
     }
 
     const stringifiedTopic = keyToTopic(key)
@@ -66,48 +65,42 @@ class DatastorePubsub {
     log(`publish value for topic ${stringifiedTopic}`)
 
     // Publish record to pubsub
-    this._pubsub.publish(stringifiedTopic, val, callback)
+    return this._pubsub.publish(stringifiedTopic, val)
   }
 
   /**
    * Try to subscribe a topic with Pubsub and returns the local value if available.
    * @param {Buffer} key identifier of the value to be subscribed.
-   * @param {function(Error, Buffer)} callback
-   * @returns {void}
+   * @returns {Promise<Buffer>}
    */
-  get (key, callback) {
+  async get (key) {
     if (!Buffer.isBuffer(key)) {
       const errMsg = `datastore key does not have a valid format`
 
       log.error(errMsg)
-      return callback(errcode(new Error(errMsg), 'ERR_INVALID_DATASTORE_KEY'))
+      throw errcode(new Error(errMsg), 'ERR_INVALID_DATASTORE_KEY')
     }
 
     const stringifiedTopic = keyToTopic(key)
+    const subscriptions = await this._pubsub.ls()
 
-    this._pubsub.ls((err, res) => {
-      if (err) {
-        return callback(err)
-      }
+    // If already subscribed, just try to get it
+    if (subscriptions && Array.isArray(subscriptions) && subscriptions.indexOf(stringifiedTopic) > -1) {
+      return this._getLocal(key)
+    }
 
-      // If already subscribed, just try to get it
-      if (res && Array.isArray(res) && res.indexOf(stringifiedTopic) > -1) {
-        return this._getLocal(key, callback)
-      }
+    // subscribe
+    try {
+      await this._pubsub.subscribe(stringifiedTopic, this._onMessage)
+    } catch (err) {
+      const errMsg = `cannot subscribe topic ${stringifiedTopic}`
 
-      // Subscribe
-      this._pubsub.subscribe(stringifiedTopic, this._onMessage, (err) => {
-        if (err) {
-          const errMsg = `cannot subscribe topic ${stringifiedTopic}`
+      log.error(errMsg)
+      throw errcode(new Error(errMsg), 'ERR_SUBSCRIBING_TOPIC')
+    }
+    log(`subscribed values for key ${stringifiedTopic}`)
 
-          log.error(errMsg)
-          return callback(errcode(new Error(errMsg), 'ERR_SUBSCRIBING_TOPIC'))
-        }
-        log(`subscribed values for key ${stringifiedTopic}`)
-
-        this._getLocal(key, callback)
-      })
-    })
+    return this._getLocal(key)
   }
 
   /**
@@ -122,37 +115,40 @@ class DatastorePubsub {
   }
 
   // Get record from local datastore
-  _getLocal (key, callback) {
+  async _getLocal (key) {
     // encode key - base32(/ipns/{cid})
     const routingKey = new Key('/' + encodeBase32(key), false)
+    let dsVal
 
-    this._datastore.get(routingKey, (err, dsVal) => {
-      if (err) {
-        if (err.code !== 'ERR_NOT_FOUND') {
-          const errMsg = `unexpected error getting the ipns record for ${routingKey.toString()}`
-
-          log.error(errMsg)
-          return callback(errcode(new Error(errMsg), 'ERR_UNEXPECTED_ERROR_GETTING_RECORD'))
-        }
-        const errMsg = `local record requested was not found for ${routingKey.toString()}`
+    try {
+      dsVal = await this._datastore.get(routingKey)
+    } catch (err) {
+      console.log('err', err)
+      if (err.code !== 'ERR_NOT_FOUND') {
+        const errMsg = `unexpected error getting the ipns record for ${routingKey.toString()}`
 
         log.error(errMsg)
-        return callback(errcode(new Error(errMsg), 'ERR_NOT_FOUND'))
+        throw errcode(new Error(errMsg), 'ERR_UNEXPECTED_ERROR_GETTING_RECORD')
       }
+      const errMsg = `local record requested was not found for ${routingKey.toString()}`
 
-      if (!Buffer.isBuffer(dsVal)) {
-        const errMsg = `found record that we couldn't convert to a value`
+      log.error(errMsg)
+      throw errcode(new Error(errMsg), 'ERR_NOT_FOUND')
+    }
 
-        log.error(errMsg)
-        return callback(errcode(new Error(errMsg), 'ERR_INVALID_RECORD_RECEIVED'))
-      }
+    console.log('dsVal', dsVal)
+    if (!Buffer.isBuffer(dsVal)) {
+      const errMsg = `found record that we couldn't convert to a value`
 
-      callback(null, dsVal)
-    })
+      log.error(errMsg)
+      throw errcode(new Error(errMsg), 'ERR_INVALID_RECORD_RECEIVED')
+    }
+
+    return dsVal
   }
 
   // handles pubsub subscription messages
-  _onMessage (msg) {
+  async _onMessage (msg) {
     const { data, from, topicIDs } = msg
     let key
     try {
@@ -171,119 +167,114 @@ class DatastorePubsub {
     }
 
     if (this._handleSubscriptionKeyFn) {
-      this._handleSubscriptionKeyFn(key, (err, res) => {
-        if (err) {
-          log.error('message discarded by the subscriptionKeyFn')
-          return
-        }
+      let res
 
-        this._storeIfSubscriptionIsBetter(res, data)
-      })
+      try {
+        res = await this._handleSubscriptionKeyFn(key)
+      } catch (err) {
+        log.error('message discarded by the subscriptionKeyFn')
+        return
+      }
+      return this._storeIfSubscriptionIsBetter(res, data)
     } else {
-      this._storeIfSubscriptionIsBetter(key, data)
+      return this._storeIfSubscriptionIsBetter(key, data)
     }
   }
 
   // Store the received record if it is better than the current stored
-  _storeIfSubscriptionIsBetter (key, data) {
-    this._isBetter(key, data, (err, res) => {
-      if (!err && res) {
-        this._storeRecord(Buffer.from(key), data)
-      }
-    })
+  async _storeIfSubscriptionIsBetter (key, data) {
+    const isBetter = await this._isBetter(key, data)
+
+    isBetter && this._storeRecord(Buffer.from(key), data)
   }
 
   // Validate record according to the received validation function
-  _validateRecord (value, peerId, callback) {
-    this._validator.validate(value, peerId, callback)
+  async _validateRecord (value, peerId) { // eslint-disable-line require-await
+    return this._validator.validate(value, peerId)
   }
 
   // Select the best record according to the received select function.
-  _selectRecord (receivedRecord, currentRecord, callback) {
-    this._validator.select(receivedRecord, currentRecord, (err, res) => {
-      if (err) {
-        log.error(err)
-        return callback(err)
-      }
+  async _selectRecord (receivedRecord, currentRecord) {
+    const res = await this._validator.select(receivedRecord, currentRecord)
 
-      // If the selected was the first (0), it should be stored (true)
-      callback(null, res === 0)
-    })
+    // If the selected was the first (0), it should be stored (true)
+    return res === 0
   }
 
   // Verify if the record received through pubsub is valid and better than the one currently stored
-  _isBetter (key, val, callback) {
+  async _isBetter (key, val) {
     // validate received record
-    this._validateRecord(val, key, (err, valid) => {
-      // If not valid, it is not better than the one currently available
-      if (err || !valid) {
-        const errMsg = 'record received through pubsub is not valid'
+    let error, valid
 
-        log.error(errMsg)
-        return callback(errcode(new Error(errMsg), 'ERR_NOT_VALID_RECORD'))
-      }
+    try {
+      valid = await this._validateRecord(val, key)
+    } catch (err) {
+      error = err
+    }
 
-      // Get Local record
-      const dsKey = new Key(key)
+    // If not valid, it is not better than the one currently available
+    if (error || !valid) {
+      const errMsg = 'record received through pubsub is not valid'
 
-      this._getLocal(dsKey.toBuffer(), (err, currentRecord) => {
-        // if the old one is invalid, the new one is *always* better
-        if (err) {
-          return callback(null, true)
-        }
+      log.error(errMsg)
+      throw errcode(new Error(errMsg), 'ERR_NOT_VALID_RECORD')
+    }
 
-        // if the same record, do not need to store
-        if (currentRecord.equals(val)) {
-          return callback(null, false)
-        }
+    // Get Local record
+    const dsKey = new Key(key)
+    let currentRecord
 
-        // verify if the received record should replace the current one
-        this._selectRecord(val, currentRecord, callback)
-      })
-    })
+    try {
+      currentRecord = this._getLocal(dsKey.toBuffer())
+    } catch (err) {
+      // if the old one is invalid, the new one is *always* better
+      return true
+    }
+
+    // if the same record, do not need to store
+    if (currentRecord.equals(val)) {
+      return false
+    }
+
+    // verify if the received record should replace the current one
+    return this._selectRecord(val, currentRecord)
   }
 
   // add record to datastore
-  _storeRecord (key, data) {
+  async _storeRecord (key, data) {
     // encode key - base32(/ipns/{cid})
     const routingKey = new Key('/' + encodeBase32(key), false)
 
-    this._datastore.put(routingKey, data, (err) => {
-      if (err) {
-        log.error(`record for ${key.toString()} could not be stored in the routing`)
-        return
-      }
-
-      log(`record for ${key.toString()} was stored in the datastore`)
-    })
+    await this._datastore.put(routingKey, data)
+    log(`record for ${key.toString()} was stored in the datastore`)
   }
 
-  open (callback) {
+  open () {
     const errMsg = `open function was not implemented yet`
 
     log.error(errMsg)
-    return callback(errcode(new Error(errMsg), 'ERR_NOT_IMPLEMENTED_YET'))
+    throw errcode(new Error(errMsg), 'ERR_NOT_IMPLEMENTED_YET')
   }
 
-  has (key, callback) {
+  has (key) {
     const errMsg = `has function was not implemented yet`
 
     log.error(errMsg)
-    return callback(errcode(new Error(errMsg), 'ERR_NOT_IMPLEMENTED_YET'))
+    throw errcode(new Error(errMsg), 'ERR_NOT_IMPLEMENTED_YET')
   }
 
-  delete (key, callback) {
+  delete (key) {
     const errMsg = `delete function was not implemented yet`
 
     log.error(errMsg)
-    return callback(errcode(new Error(errMsg), 'ERR_NOT_IMPLEMENTED_YET'))
+    throw errcode(new Error(errMsg), 'ERR_NOT_IMPLEMENTED_YET')
   }
 
-  close (callback) {
+  close () {
     const errMsg = `close function was not implemented yet`
 
     log.error(errMsg)
-    return callback(errcode(new Error(errMsg), 'ERR_NOT_IMPLEMENTED_YET'))
+    throw errcode(new Error(errMsg), 'ERR_NOT_IMPLEMENTED_YET')
   }
 
   batch () {

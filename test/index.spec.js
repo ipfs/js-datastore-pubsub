@@ -8,7 +8,6 @@ chai.use(dirtyChai)
 const sinon = require('sinon')
 
 const isNode = require('detect-node')
-const parallel = require('async/parallel')
 const series = require('async/series')
 
 const { Key } = require('interface-datastore')
@@ -21,11 +20,11 @@ const { connect, waitFor, waitForPeerToSubscribe, spawnDaemon, stopDaemon } = re
 // Always returning the expected values
 // Valid record and select the new one
 const smoothValidator = {
-  validate: (data, peerId, callback) => {
-    callback(null, true)
+  validate: (data, peerId) => {
+    return true
   },
   select: (receivedRecod, currentRecord, callback) => {
-    callback(null, 0)
+    return 0
   }
 }
 
@@ -38,32 +37,6 @@ describe('datastore-pubsub', function () {
   let ipfsdB = null
   let ipfsdAId = null
   let ipfsdBId = null
-
-  // spawn daemon
-  before(function (done) {
-    parallel([
-      (cb) => spawnDaemon(cb),
-      (cb) => spawnDaemon(cb)
-    ], (err, daemons) => {
-      expect(err).to.not.exist()
-
-      ipfsdA = daemons[0]
-      ipfsdB = daemons[1]
-
-      parallel([
-        (cb) => ipfsdA.api.id(cb),
-        (cb) => ipfsdB.api.id(cb)
-      ], (err, ids) => {
-        expect(err).to.not.exist()
-
-        ipfsdAId = ids[0]
-        ipfsdBId = ids[1]
-
-        connect(ipfsdA, ipfsdAId, ipfsdB, ipfsdBId, done)
-      })
-    })
-  })
-
   let pubsubA = null
   let datastoreA = null
   let peerIdA = null
@@ -72,8 +45,13 @@ describe('datastore-pubsub', function () {
   let peerIdB = null
   let pubsubB = null
 
-  // create DatastorePubsub instances
-  before(function (done) {
+  // spawn daemon and create DatastorePubsub instances
+  before(async function () {
+    [ipfsdA, ipfsdB] = await Promise.all([spawnDaemon(), spawnDaemon()]);
+    [ipfsdAId, ipfsdBId] = await Promise.all([ipfsdA.api.id(), ipfsdB.api.id()])
+
+    await connect(ipfsdA, ipfsdAId, ipfsdB, ipfsdBId)
+
     pubsubA = ipfsdA.api.pubsub
     datastoreA = ipfsdA.api._repo.datastore
     peerIdA = ipfsdA.api._peerInfo.id
@@ -81,8 +59,6 @@ describe('datastore-pubsub', function () {
     pubsubB = ipfsdB.api.pubsub
     datastoreB = ipfsdB.api._repo.datastore
     peerIdB = ipfsdB.api._peerInfo.id
-
-    done()
   })
 
   const value = 'value'
@@ -93,48 +69,47 @@ describe('datastore-pubsub', function () {
   let serializedRecord = null
 
   // prepare Record
-  beforeEach(function (done) {
+  beforeEach(() => {
     keyRef = `key${testCounter}`
     key = (new Key(keyRef)).toBuffer()
     record = new Record(key, Buffer.from(value))
 
     serializedRecord = record.serialize()
-    done()
   })
 
-  afterEach(function (done) {
+  afterEach(() => {
     ++testCounter
-    done()
   })
 
-  after(function (done) {
-    parallel([
-      (cb) => stopDaemon(ipfsdA, cb),
-      (cb) => stopDaemon(ipfsdB, cb)
-    ], done)
+  after(() => {
+    return Promise.all([
+      stopDaemon(ipfsdA),
+      stopDaemon(ipfsdB)
+    ])
   })
 
-  it('should subscribe the topic, but receive error as no entry is stored locally', function (done) {
+  it('should subscribe the topic, but receive error as no entry is stored locally', async () => {
     const dsPubsubA = new DatastorePubsub(pubsubA, datastoreA, peerIdA, smoothValidator)
     const subsTopic = keyToTopic(`/${keyRef}`)
 
-    pubsubA.ls((err, res) => {
-      expect(err).to.not.exist()
-      expect(res).to.exist()
-      expect(res).to.not.include(subsTopic) // not subscribed key reference yet
+    let subscribers = await pubsubA.ls()
 
-      dsPubsubA.get(key, (err) => {
-        expect(err).to.exist() // not locally stored record
-        expect(err.code).to.equal('ERR_NOT_FOUND')
+    expect(subscribers).to.exist()
+    expect(subscribers).to.not.include(subsTopic) // not subscribed key reference yet
 
-        pubsubA.ls((err, res) => {
-          expect(err).to.not.exist()
-          expect(res).to.exist()
-          expect(res).to.include(subsTopic) // subscribed key reference
-          done()
-        })
-      })
-    })
+    let res
+    try {
+      res = await dsPubsubA.get(key)
+    } catch (err) {
+      expect(err).to.exist() // not locally stored record
+      // expect(err.code).to.equal('ERR_NOT_FOUND') TODO: needs new datastore on js-ipfs
+    }
+    expect(res).to.not.exist()
+
+    subscribers = await pubsubA.ls()
+
+    expect(subscribers).to.exist()
+    expect(subscribers).to.include(subsTopic) // subscribed key reference
   })
 
   it('should put correctly to daemon A and daemon B should not receive it without subscribing', function (done) {
