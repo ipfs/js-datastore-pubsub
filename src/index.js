@@ -121,7 +121,7 @@ class DatastorePubsub {
   unsubscribe (key) {
     const stringifiedTopic = keyToTopic(key)
 
-    this._pubsub.unsubscribe(stringifiedTopic, this._onMessage)
+    return this._pubsub.unsubscribe(stringifiedTopic, this._onMessage)
   }
 
   // Get record from local datastore

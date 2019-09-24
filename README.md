@@ -17,11 +17,18 @@
 
 ## Table of Contents
 
-- [Install](#install)
-- [Usage](#usage)
-- [API](#api)
-- [Contribute](#contribute)
-- [License](#license)
+- [datastore-pubsub](#datastore-pubsub)
+  - [Lead Maintainer](#lead-maintainer)
+  - [Table of Contents](#table-of-contents)
+    - [Install](#install)
+  - [Usage](#usage)
+  - [API](#api)
+      - [Setup](#setup)
+      - [Get](#get)
+      - [Put](#put)
+      - [Unsubscribe](#unsubscribe)
+  - [Contribute](#contribute)
+  - [License](#license)
 
 ### Install
 
@@ -62,7 +69,7 @@ const dsPubsub = new DatastorePubsub(pubsub, datastore, peerId, validator)
 #### Get
 
 ```js
-dsPubsub.get(key, callback)
+const buf = await dsPubsub.get(key)
 ```
 
 Try to subscribe a topic with Pubsub and receive the current local value if available.
@@ -70,14 +77,13 @@ Try to subscribe a topic with Pubsub and receive the current local value if avai
 Arguments:
 
 - `key` (Buffer): a key representing a unique identifier of the object to subscribe.
-- `callback` (function): operation result.
 
-`callback` must follow `function (err, data) {}` signature, where `err` is an error if the operation was not successful. If no `err` is received, a `data` is received containing the most recent known record stored (`Buffer`).
+Returns `Promise<Buffer>` containing the most recent known record stored.
 
 #### Put
 
 ```js
-dsPubsub.put(key, val, callback)
+await dsPubsub.put(key, val)
 ```
 
 Publishes a value through pubsub.
@@ -86,14 +92,13 @@ Arguments:
 
 - `key` (Buffer): a key representing a unique identifier of the object to publish.
 - `val` (Buffer): value to be propagated.
-- `callback` (function): operation result.
 
-`callback` must follow `function (err) {}` signature, where `err` is an error if the operation was not successful.
+Returns `Promise<void>`
 
 #### Unsubscribe
 
 ```js
-dsPubsub.unsubscribe(key, callback)
+await dsPubsub.unsubscribe(key)
 ```
 
 Unsubscribe a previously subscribe value.
@@ -101,6 +106,8 @@ Unsubscribe a previously subscribe value.
 Arguments:
 
 - `key` (Buffer): a key representing a unique identifier of the object to publish.
+
+Returns `Promise<void>`
 
 ## Contribute
 
