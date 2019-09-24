@@ -8,8 +8,8 @@
     "build": "aegir build",
     "lint": "aegir lint",
     "release": "aegir release --target node",
-    "release-minor": "aegir release --type minor",
-    "release-major": "aegir release --type major",
+    "release-minor": "aegir release --target node --type minor",
+    "release-major": "aegir release --target node --type major",
     "test": "aegir test -t node",
     "test:node": "aegir test -t node"
   },
