@@ -206,7 +206,9 @@ class DatastorePubsub {
       }
     }
 
-    isBetter && this._storeRecord(Buffer.from(key), data)
+    if (isBetter) {
+      await this._storeRecord(Buffer.from(key), data)
+    }
   }
 
   // Validate record according to the received validation function

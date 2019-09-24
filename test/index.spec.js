@@ -111,13 +111,12 @@ describe('datastore-pubsub', function () {
     expect(subscribers).to.exist()
     expect(subscribers).to.not.include(subsTopic) // not subscribed key reference yet
 
-    let res
-    try {
-      res = await dsPubsubA.get(key)
-    } catch (err) {
-      expect(err).to.exist() // not locally stored record
-      expect(err.code).to.equal('ERR_NOT_FOUND')
-    }
+    const res = await dsPubsubA.get(key)
+      .then(() => expect.fail('Should have failed to fetch key'), (err) => {
+        // not locally stored record
+        expect(err.code).to.equal('ERR_NOT_FOUND')
+      })
+
     expect(res).to.not.exist()
 
     subscribers = await pubsubA.ls()
@@ -137,24 +136,23 @@ describe('datastore-pubsub', function () {
 
     await dsPubsubA.put(key, serializedRecord)
 
-    try {
-      await dsPubsubB.get(key)
-      expect.fail('Should not have received message')
-    } catch (err) {
-      expect(err.code).to.equal('ERR_NOT_FOUND')
-    }
+    await dsPubsubB.get(key)
+      .then(() => expect.fail('Should have failed to fetch key'), (err) => {
+        // not locally stored record
+        expect(err.code).to.equal('ERR_NOT_FOUND')
+      })
   })
 
   it('should validate if record content is the same', async () => {
     const customValidator = {
-      validate: (data, peerId) => {
+      validate: (data) => {
         const receivedRecord = Record.deserialize(data)
 
         expect(receivedRecord.value.toString()).to.equal(value) // validator should deserialize correctly
 
         return receivedRecord.value.toString() === value
       },
-      select: (receivedRecod, currentRecord) => {
+      select: () => {
         return 0
       }
     }
@@ -167,12 +165,12 @@ describe('datastore-pubsub', function () {
       receivedMessage = true
     }
 
-    try {
-      await dsPubsubB.get(key)
-      expect.fail('Should not have found message')
-    } catch (err) {
-      expect(err.code).to.equal('ERR_NOT_FOUND')
-    }
+    // causes pubsub b to become subscribed to the topic
+    await dsPubsubB.get(key)
+      .then(() => expect.fail('Should have failed to fetch key'), (err) => {
+        // not locally stored record
+        expect(err.code).to.equal('ERR_NOT_FOUND')
+      })
 
     await waitForPeerToSubscribe(subsTopic, ipfsdBId, ipfsdA)
 
@@ -204,13 +202,12 @@ describe('datastore-pubsub', function () {
     expect(res).to.exist()
     expect(res).to.not.include(subsTopic) // not subscribed
 
-    try {
-      await dsPubsubB.get(key)
-      expect.fail('Should not have found message')
-    } catch (err) {
-      // no value available, but subscribed now
-      expect(err.code).to.equal('ERR_NOT_FOUND')
-    }
+    // causes pubsub b to become subscribed to the topic
+    await dsPubsubB.get(key)
+      .then(() => expect.fail('Should have failed to fetch key'), (err) => {
+        // not locally stored record
+        expect(err.code).to.equal('ERR_NOT_FOUND')
+      })
 
     await waitForPeerToSubscribe(subsTopic, ipfsdBId, ipfsdA)
 
@@ -294,13 +291,12 @@ describe('datastore-pubsub', function () {
       receivedMessage = true
     }
 
-    try {
-      await dsPubsubB.get(key)
-      expect.fail('Should not have found subscription')
-    } catch (err) {
-      // no value available, but subscribed now
-      expect(err.code).to.equal('ERR_NOT_FOUND')
-    }
+    // causes pubsub b to become subscribed to the topic
+    await dsPubsubB.get(key)
+      .then(() => expect.fail('Should have failed to fetch key'), (err) => {
+        // not locally stored record
+        expect(err.code).to.equal('ERR_NOT_FOUND')
+      })
 
     await waitForPeerToSubscribe(subsTopic, ipfsdBId, ipfsdA)
 
@@ -344,13 +340,12 @@ describe('datastore-pubsub', function () {
       receivedMessage = true
     }
 
-    try {
-      await dsPubsubB.get(key)
-      expect.fail('Should not have found subscription')
-    } catch (err) {
-      // no value available, but subscribed now
-      expect(err.code).to.equal('ERR_NOT_FOUND')
-    }
+    // causes pubsub b to become subscribed to the topic
+    await dsPubsubB.get(key)
+      .then(() => expect.fail('Should have failed to fetch key'), (err) => {
+        // not locally stored record
+        expect(err.code).to.equal('ERR_NOT_FOUND')
+      })
 
     await waitForPeerToSubscribe(subsTopic, ipfsdBId, ipfsdA)
 
@@ -395,13 +390,12 @@ describe('datastore-pubsub', function () {
       receivedMessage = true
     }
 
-    try {
-      await dsPubsubB.get(key)
-      expect.fail('Should not have found subscription')
-    } catch (err) {
-      // no value available, but subscribed now
-      expect(err.code).to.equal('ERR_NOT_FOUND')
-    }
+    // causes pubsub b to become subscribed to the topic
+    await dsPubsubB.get(key)
+      .then(() => expect.fail('Should have failed to fetch key'), (err) => {
+        // not locally stored record
+        expect(err.code).to.equal('ERR_NOT_FOUND')
+      })
 
     await waitForPeerToSubscribe(subsTopic, ipfsdBId, ipfsdA)
 
@@ -448,13 +442,12 @@ describe('datastore-pubsub', function () {
     const res = await pubsubB.ls()
     expect(res).to.not.include(subsTopic) // not subscribed
 
-    try {
-      await dsPubsubB.get(key)
-      expect.fail('Should not have found subscription')
-    } catch (err) {
-      // no value available, but subscribed now
-      expect(err.code).to.equal('ERR_NOT_FOUND')
-    }
+    // causes pubsub b to become subscribed to the topic
+    await dsPubsubB.get(key)
+      .then(() => expect.fail('Should have failed to fetch key'), (err) => {
+        // not locally stored record
+        expect(err.code).to.equal('ERR_NOT_FOUND')
+      })
 
     await waitForPeerToSubscribe(subsTopic, ipfsdBId, ipfsdA)
 
@@ -493,13 +486,12 @@ describe('datastore-pubsub', function () {
     const res = await pubsubB.ls()
     expect(res).to.not.include(subsTopic) // not subscribed
 
-    try {
-      await dsPubsubB.get(key)
-      expect.fail('Should not have found subscription')
-    } catch (err) {
-      // no value available, but subscribed now
-      expect(err.code).to.equal('ERR_NOT_FOUND')
-    }
+    // causes pubsub b to become subscribed to the topic
+    await dsPubsubB.get(key)
+      .then(() => expect.fail('Should have failed to fetch key'), (err) => {
+        // not locally stored record
+        expect(err.code).to.equal('ERR_NOT_FOUND')
+      })
 
     await waitForPeerToSubscribe(subsTopic, ipfsdBId, ipfsdA)
 
@@ -522,21 +514,19 @@ describe('datastore-pubsub', function () {
 
     sinon.spy(pubsubA, 'subscribe')
 
-    try {
-      await dsPubsubA.get(key)
-      expect.fail('Should not have stored message')
-    } catch (err) {
-      // not locally stored record
-      expect(err.code).to.equal('ERR_NOT_FOUND')
-    }
+    // causes pubsub b to become subscribed to the topic
+    await dsPubsubA.get(key)
+      .then(() => expect.fail('Should have failed to fetch key'), (err) => {
+        // not locally stored record
+        expect(err.code).to.equal('ERR_NOT_FOUND')
+      })
 
-    try {
-      await dsPubsubA.get(key)
-      expect.fail('Should not have stored message')
-    } catch (err) {
-      // not locally stored record
-      expect(err.code).to.equal('ERR_NOT_FOUND')
-    }
+    // causes pubsub b to become subscribed to the topic
+    await dsPubsubA.get(key)
+      .then(() => expect.fail('Should have failed to fetch key'), (err) => {
+        // not locally stored record
+        expect(err.code).to.equal('ERR_NOT_FOUND')
+      })
 
     expect(pubsubA.subscribe.calledOnce).to.equal(true)
   })
@@ -545,14 +535,14 @@ describe('datastore-pubsub', function () {
     const dsPubsubA = new DatastorePubsub(pubsubA, datastoreA, peerIdA, smoothValidator)
     const stub = sinon.stub(dsPubsubA._datastore, 'get').throws(errcode(new Error('Wut'), 'RANDOM_ERR'))
 
-    try {
-      await dsPubsubA.get(key)
-      expect.fail('Should not have stored message')
-    } catch (err) {
-      // not locally stored record
-      expect(err.code).to.equal('ERR_UNEXPECTED_ERROR_GETTING_RECORD')
-    } finally {
-      stub.restore()
-    }
+    // causes pubsub b to become subscribed to the topic
+    await dsPubsubA.get(key)
+      .then(() => expect.fail('Should have failed to fetch key'), (err) => {
+        // not locally stored record
+        expect(err.code).to.equal('ERR_UNEXPECTED_ERROR_GETTING_RECORD')
+      })
+      .finally(() => {
+        stub.restore()
+      })
   })
 })
