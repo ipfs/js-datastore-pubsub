@@ -27,5 +27,5 @@ module.exports.topicToKey = (topic) => {
 
   const key = `${base64urlCode}${topic.substring(namespace.length)}`
 
-  return multibase.decode(key).toString()
+  return multibase.decode(key)
 }
