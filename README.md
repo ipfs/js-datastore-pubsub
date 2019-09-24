@@ -17,7 +17,6 @@
 
 ## Table of Contents
 
-- [datastore-pubsub](#datastore-pubsub)
   - [Lead Maintainer](#lead-maintainer)
   - [Table of Contents](#table-of-contents)
     - [Install](#install)
