@@ -1,3 +1,18 @@
+<a name="0.2.0"></a>
+# [0.2.0](https://github.com/ipfs/js-datastore-pubsub/compare/v0.1.1...v0.2.0) (2019-09-24)
+
+
+### Code Refactoring
+
+* switch to async ([#15](https://github.com/ipfs/js-datastore-pubsub/issues/15)) ([0e9a1a7](https://github.com/ipfs/js-datastore-pubsub/commit/0e9a1a7))
+
+
+### BREAKING CHANGES
+
+* Switch to using async/await
+
+
+
 <a name="0.1.1"></a>
 ## [0.1.1](https://github.com/ipfs/js-datastore-pubsub/compare/v0.1.0...v0.1.1) (2018-11-29)
 
