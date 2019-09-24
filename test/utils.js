@@ -2,8 +2,7 @@
 
 const ipfs = require('ipfs')
 const DaemonFactory = require('ipfsd-ctl')
-
-const retry = require('async/retry')
+const delay = require('delay')
 
 const config = {
   Addresses: {
@@ -15,13 +14,19 @@ const config = {
 
 // spawn a daemon
 const spawnDaemon = () => {
-  const d = DaemonFactory.create({ exec: ipfs, type: 'proc' })
+  const d = DaemonFactory.create({
+    exec: ipfs,
+    type: 'proc',
+    IpfsApi: require('ipfs-http-client')
+  })
 
   return d.spawn({
-    args: ['--enable-pubsub-experiment'],
     disposable: true,
     bits: 512,
-    config
+    config,
+    EXPERIMENTAL: {
+      pubsub: true
+    }
   })
 }
 
@@ -44,38 +49,29 @@ const connect = (dA, dAId, dB, dBId) => {
 }
 
 // Wait for a condition to become true.  When its true, callback is called.
-const waitFor = (predicate, callback) => {
-  const ttl = Date.now() + (10 * 1000)
-  const self = setInterval(() => {
-    if (predicate()) {
-      clearInterval(self)
-      return callback()
+const waitFor = async (predicate) => {
+  for (let i = 0; i < 10; i++) {
+    if (await predicate()) {
+      return
     }
-    if (Date.now() > ttl) {
-      clearInterval(self)
-      return callback(new Error('waitFor time expired'))
-    }
-  }, 500)
+
+    await delay(1000)
+  }
+
+  throw new Error('waitFor time expired')
 }
 
 // Wait until a peer subscribes a topic
-const waitForPeerToSubscribe = (topic, peer, daemon, callback) => {
-  retry({
-    times: 5,
-    interval: 1000
-  }, (next) => {
-    daemon.api.pubsub.peers(topic, (error, peers) => {
-      if (error) {
-        return next(error)
-      }
+const waitForPeerToSubscribe = async (topic, peer, daemon) => {
+  for (let i = 0; i < 5; i++) {
+    const peers = await daemon.api.pubsub.peers(topic)
 
-      if (!peers.includes(peer.id)) {
-        return next(new Error(`Could not find peer ${peer.id}`))
-      }
+    if (peers.includes(peer.id)) {
+      return
+    }
 
-      return next()
-    })
-  }, callback)
+    await delay(1000)
+  }
 }
 
 module.exports = {

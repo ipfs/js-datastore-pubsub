@@ -4,7 +4,6 @@ const { Key } = require('interface-datastore')
 const { encodeBase32, keyToTopic, topicToKey } = require('./utils')
 
 const errcode = require('err-code')
-const assert = require('assert')
 const debug = require('debug')
 const log = debug('datastore-pubsub:publisher')
 log.error = debug('datastore-pubsub:publisher:error')
@@ -24,10 +23,21 @@ class DatastorePubsub {
    * @memberof DatastorePubsub
    */
   constructor (pubsub, datastore, peerId, validator, subscriptionKeyFn) {
-    assert.strictEqual(typeof validator, 'object', 'missing validator')
-    assert.strictEqual(typeof validator.validate, 'function', 'missing validate function')
-    assert.strictEqual(typeof validator.select, 'function', 'missing select function')
-    subscriptionKeyFn && assert.strictEqual(typeof subscriptionKeyFn, 'function', 'invalid subscriptionKeyFn received')
+    if (!validator) {
+      throw errcode(new TypeError('missing validator'), 'ERR_INVALID_PARAMETERS')
+    }
+
+    if (typeof validator.validate !== 'function') {
+      throw errcode(new TypeError('missing validate function'), 'ERR_INVALID_PARAMETERS')
+    }
+
+    if (typeof validator.select !== 'function') {
+      throw errcode(new TypeError('missing select function'), 'ERR_INVALID_PARAMETERS')
+    }
+
+    if (subscriptionKeyFn && typeof subscriptionKeyFn !== 'function') {
+      throw errcode(new TypeError('invalid subscriptionKeyFn received'), 'ERR_INVALID_PARAMETERS')
+    }
 
     this._pubsub = pubsub
     this._datastore = datastore
@@ -123,7 +133,6 @@ class DatastorePubsub {
     try {
       dsVal = await this._datastore.get(routingKey)
     } catch (err) {
-      console.log('err', err)
       if (err.code !== 'ERR_NOT_FOUND') {
         const errMsg = `unexpected error getting the ipns record for ${routingKey.toString()}`
 
@@ -136,7 +145,6 @@ class DatastorePubsub {
       throw errcode(new Error(errMsg), 'ERR_NOT_FOUND')
     }
 
-    console.log('dsVal', dsVal)
     if (!Buffer.isBuffer(dsVal)) {
       const errMsg = `found record that we couldn't convert to a value`
 
@@ -175,15 +183,28 @@ class DatastorePubsub {
         log.error('message discarded by the subscriptionKeyFn')
         return
       }
-      return this._storeIfSubscriptionIsBetter(res, data)
-    } else {
-      return this._storeIfSubscriptionIsBetter(key, data)
+
+      key = res
+    }
+
+    try {
+      await this._storeIfSubscriptionIsBetter(key, data)
+    } catch (err) {
+      log.error(err)
     }
   }
 
   // Store the received record if it is better than the current stored
   async _storeIfSubscriptionIsBetter (key, data) {
-    const isBetter = await this._isBetter(key, data)
+    let isBetter = false
+
+    try {
+      isBetter = await this._isBetter(key, data)
+    } catch (err) {
+      if (err.code !== 'ERR_NOT_VALID_RECORD') {
+        throw err
+      }
+    }
 
     isBetter && this._storeRecord(Buffer.from(key), data)
   }
@@ -225,7 +246,7 @@ class DatastorePubsub {
     let currentRecord
 
     try {
-      currentRecord = this._getLocal(dsKey.toBuffer())
+      currentRecord = await this._getLocal(dsKey.toBuffer())
     } catch (err) {
       // if the old one is invalid, the new one is *always* better
       return true
