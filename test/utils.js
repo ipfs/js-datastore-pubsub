@@ -2,10 +2,7 @@
 
 const ipfs = require('ipfs')
 const DaemonFactory = require('ipfsd-ctl')
-
-const parallel = require('async/parallel')
-const retry = require('async/retry')
-const series = require('async/series')
+const delay = require('delay')
 
 const config = {
   Addresses: {
@@ -16,69 +13,65 @@ const config = {
 }
 
 // spawn a daemon
-const spawnDaemon = (callback) => {
-  DaemonFactory.create({ exec: ipfs, type: 'proc' })
-    .spawn({
-      args: ['--enable-pubsub-experiment'],
-      disposable: true,
-      bits: 512,
-      config
-    }, callback)
+const spawnDaemon = () => {
+  const d = DaemonFactory.create({
+    exec: ipfs,
+    type: 'proc',
+    IpfsApi: require('ipfs-http-client')
+  })
+
+  return d.spawn({
+    disposable: true,
+    bits: 512,
+    config,
+    EXPERIMENTAL: {
+      pubsub: true
+    }
+  })
 }
 
 // stop a daemon
-const stopDaemon = (daemon, callback) => {
-  series([
-    (cb) => daemon.stop(cb),
-    (cb) => setTimeout(cb, 200),
-    (cb) => daemon.cleanup(cb)
-  ], callback)
+const stopDaemon = async (daemon) => {
+  await daemon.stop()
+  await new Promise((resolve) => setTimeout(() => resolve(), 200))
+  return daemon.cleanup()
 }
 
 // connect two peers
-const connect = (dA, dAId, dB, dBId, callback) => {
+const connect = (dA, dAId, dB, dBId) => {
   const dALocalAddress = dAId.addresses.find(a => a.includes('127.0.0.1'))
   const dBLocalAddress = dBId.addresses.find(a => a.includes('127.0.0.1'))
 
-  parallel([
-    (cb) => dA.api.swarm.connect(dBLocalAddress, cb),
-    (cb) => dB.api.swarm.connect(dALocalAddress, cb)
-  ], callback)
+  return Promise.all([
+    dA.api.swarm.connect(dBLocalAddress),
+    dB.api.swarm.connect(dALocalAddress)
+  ])
 }
 
 // Wait for a condition to become true.  When its true, callback is called.
-const waitFor = (predicate, callback) => {
-  const ttl = Date.now() + (10 * 1000)
-  const self = setInterval(() => {
-    if (predicate()) {
-      clearInterval(self)
-      return callback()
+const waitFor = async (predicate) => {
+  for (let i = 0; i < 10; i++) {
+    if (await predicate()) {
+      return
     }
-    if (Date.now() > ttl) {
-      clearInterval(self)
-      return callback(new Error('waitFor time expired'))
-    }
-  }, 500)
+
+    await delay(1000)
+  }
+
+  throw new Error('waitFor time expired')
 }
 
 // Wait until a peer subscribes a topic
-const waitForPeerToSubscribe = (topic, peer, daemon, callback) => {
-  retry({
-    times: 5,
-    interval: 1000
-  }, (next) => {
-    daemon.api.pubsub.peers(topic, (error, peers) => {
-      if (error) {
-        return next(error)
-      }
+const waitForPeerToSubscribe = async (topic, peer, daemon) => {
+  for (let i = 0; i < 5; i++) {
+    const peers = await daemon.api.pubsub.peers(topic)
 
-      if (!peers.includes(peer.id)) {
-        return next(new Error(`Could not find peer ${peer.id}`))
-      }
+    if (peers.includes(peer.id)) {
+      return
+    }
 
-      return next()
-    })
-  }, callback)
+    await delay(1000)
+  }
 }
 
 module.exports = {
