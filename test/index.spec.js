@@ -20,10 +20,10 @@ const promisify = require('promisify-es6')
 // Always returning the expected values
 // Valid record and select the new one
 const smoothValidator = {
-  validate: (data, peerId) => {
+  validate: () => {
     return true
   },
-  select: (receivedRecod, currentRecord, callback) => {
+  select: () => {
     return 0
   }
 }
@@ -176,7 +176,7 @@ describe('datastore-pubsub', function () {
 
     await waitForPeerToSubscribe(subsTopic, ipfsdBId, ipfsdA)
 
-      // subscribe in order to understand when the message arrive to the node
+    // subscribe in order to understand when the message arrive to the node
     await pubsubB.subscribe(subsTopic, messageHandler)
 
     await dsPubsubA.put(key, serializedRecord)
@@ -229,7 +229,7 @@ describe('datastore-pubsub', function () {
     expect(receivedRecord.value.toString()).to.equal(value)
   })
 
-  it('should fail to create the DatastorePubsub if no validator is provided', async () => {
+  it('should fail to create the DatastorePubsub if no validator is provided', () => {
     let dsPubsubB
     try {
       dsPubsubB = new DatastorePubsub(pubsubB, datastoreB, peerIdB) // no validator
@@ -240,11 +240,11 @@ describe('datastore-pubsub', function () {
     expect(dsPubsubB).to.equal(undefined)
   })
 
-  it('should fail to create the DatastorePubsub if no validate function is provided', async () => {
+  it('should fail to create the DatastorePubsub if no validate function is provided', () => {
     const customValidator = {
       validate: undefined,
-      select: (receivedRecod, currentRecord, callback) => {
-        callback(null, 0)
+      select: () => {
+        return 0
       }
     }
 
@@ -258,10 +258,10 @@ describe('datastore-pubsub', function () {
     expect(dsPubsubB).to.equal(undefined)
   })
 
-  it('should fail to create the DatastorePubsub if no select function is provided', async () => {
+  it('should fail to create the DatastorePubsub if no select function is provided', () => {
     const customValidator = {
-      validate: (data, peerId, callback) => {
-        callback(null, true)
+      validate: () => {
+        return true
       },
       select: undefined
     }

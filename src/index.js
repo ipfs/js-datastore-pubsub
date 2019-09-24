@@ -57,14 +57,14 @@ class DatastorePubsub {
    */
   async put (key, val) { // eslint-disable-line require-await
     if (!Buffer.isBuffer(key)) {
-      const errMsg = `datastore key does not have a valid format`
+      const errMsg = 'datastore key does not have a valid format'
 
       log.error(errMsg)
       throw errcode(new Error(errMsg), 'ERR_INVALID_DATASTORE_KEY')
     }
 
     if (!Buffer.isBuffer(val)) {
-      const errMsg = `received value is not a buffer`
+      const errMsg = 'received value is not a buffer'
 
       log.error(errMsg)
       throw errcode(new Error(errMsg), 'ERR_INVALID_VALUE_RECEIVED')
@@ -85,7 +85,7 @@ class DatastorePubsub {
    */
   async get (key) {
     if (!Buffer.isBuffer(key)) {
-      const errMsg = `datastore key does not have a valid format`
+      const errMsg = 'datastore key does not have a valid format'
 
       log.error(errMsg)
       throw errcode(new Error(errMsg), 'ERR_INVALID_DATASTORE_KEY')
@@ -146,7 +146,7 @@ class DatastorePubsub {
     }
 
     if (!Buffer.isBuffer(dsVal)) {
-      const errMsg = `found record that we couldn't convert to a value`
+      const errMsg = 'found record that we couldn\'t convert to a value'
 
       log.error(errMsg)
       throw errcode(new Error(errMsg), 'ERR_INVALID_RECORD_RECEIVED')
@@ -170,7 +170,7 @@ class DatastorePubsub {
 
     // Stop if the message is from the peer (it already stored it while publishing to pubsub)
     if (from === this._peerId.toB58String()) {
-      log(`message discarded as it is from the same peer`)
+      log('message discarded as it is from the same peer')
       return
     }
 
@@ -271,42 +271,42 @@ class DatastorePubsub {
   }
 
   open () {
-    const errMsg = `open function was not implemented yet`
+    const errMsg = 'open function was not implemented yet'
 
     log.error(errMsg)
     throw errcode(new Error(errMsg), 'ERR_NOT_IMPLEMENTED_YET')
   }
 
   has (key) {
-    const errMsg = `has function was not implemented yet`
+    const errMsg = 'has function was not implemented yet'
 
     log.error(errMsg)
     throw errcode(new Error(errMsg), 'ERR_NOT_IMPLEMENTED_YET')
   }
 
   delete (key) {
-    const errMsg = `delete function was not implemented yet`
+    const errMsg = 'delete function was not implemented yet'
 
     log.error(errMsg)
     throw errcode(new Error(errMsg), 'ERR_NOT_IMPLEMENTED_YET')
   }
 
   close () {
-    const errMsg = `close function was not implemented yet`
+    const errMsg = 'close function was not implemented yet'
 
     log.error(errMsg)
     throw errcode(new Error(errMsg), 'ERR_NOT_IMPLEMENTED_YET')
   }
 
   batch () {
-    const errMsg = `batch function was not implemented yet`
+    const errMsg = 'batch function was not implemented yet'
 
     log.error(errMsg)
     throw errcode(new Error(errMsg), 'ERR_NOT_IMPLEMENTED_YET')
   }
 
   query () {
-    const errMsg = `query function was not implemented yet`
+    const errMsg = 'query function was not implemented yet'
 
     log.error(errMsg)
     throw errcode(new Error(errMsg), 'ERR_NOT_IMPLEMENTED_YET')
