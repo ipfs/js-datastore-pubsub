@@ -13,7 +13,7 @@ const { Key } = require('interface-datastore')
 const { Record } = require('libp2p-record')
 
 const DatastorePubsub = require('../src')
-const { keyToTopic } = require('../src/utils')
+const { keyToTopic, topicToKey } = require('../src/utils')
 const { connect, waitFor, waitForPeerToSubscribe, spawnDaemon, stopDaemon } = require('./utils')
 const promisify = require('promisify-es6')
 
@@ -426,8 +426,8 @@ describe('datastore-pubsub', function () {
   })
 
   it('should subscribe the topic and after a message being received, discard it using the subscriptionKeyFn', async () => {
-    const subscriptionKeyFn = (topic) => {
-      expect(topic).to.equal(`/${keyRef}`)
+    const subscriptionKeyFn = (key) => {
+      expect(key.toString()).to.equal(`/${keyRef}`)
       throw new Error('DISCARD MESSAGE')
     }
     const dsPubsubA = new DatastorePubsub(pubsubA, datastoreA, peerIdA, smoothValidator)
@@ -469,14 +469,14 @@ describe('datastore-pubsub', function () {
   })
 
   it('should subscribe the topic and after a message being received, change its key using subscriptionKeyFn', async () => {
-    const subscriptionKeyFn = (topic) => {
-      expect(topic).to.equal(key.toString())
-      return `${topic}new`
+    const subscriptionKeyFn = (key) => {
+      expect(key.toString()).to.equal(`/${keyRef}`)
+      return topicToKey(`${keyToTopic(key)}new`)
     }
     const dsPubsubA = new DatastorePubsub(pubsubA, datastoreA, peerIdA, smoothValidator)
     const dsPubsubB = new DatastorePubsub(pubsubB, datastoreB, peerIdB, smoothValidator, subscriptionKeyFn)
     const subsTopic = keyToTopic(`/${keyRef}`)
-    const keyNew = Buffer.from(`${key.toString()}new`)
+    const keyNew = topicToKey(`${keyToTopic(key)}new`)
     let receivedMessage = false
 
     function messageHandler () {

@@ -166,7 +166,7 @@ class DatastorePubsub {
       return
     }
 
-    log(`message received for ${key} topic`)
+    log(`message received for topic ${topicIDs[0]}`)
 
     // Stop if the message is from the peer (it already stored it while publishing to pubsub)
     if (from === this._peerId.toB58String()) {
@@ -269,7 +269,7 @@ class DatastorePubsub {
     const routingKey = new Key('/' + encodeBase32(key), false)
 
     await this._datastore.put(routingKey, data)
-    log(`record for ${key.toString()} was stored in the datastore`)
+    log(`record for ${keyToTopic(key)} was stored in the datastore`)
   }
 
   open () {
