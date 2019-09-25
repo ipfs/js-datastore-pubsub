@@ -1,3 +1,13 @@
+<a name="0.2.1"></a>
+## [0.2.1](https://github.com/ipfs/js-datastore-pubsub/compare/v0.2.0...v0.2.1) (2019-09-25)
+
+
+### Bug Fixes
+
+* topicToKey should return a buffer not a string ([#16](https://github.com/ipfs/js-datastore-pubsub/issues/16)) ([354714f](https://github.com/ipfs/js-datastore-pubsub/commit/354714f))
+
+
+
 <a name="0.2.0"></a>
 # [0.2.0](https://github.com/ipfs/js-datastore-pubsub/compare/v0.1.1...v0.2.0) (2019-09-24)
 
