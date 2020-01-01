@@ -9,13 +9,20 @@ const sinon = require('sinon')
 const errcode = require('err-code')
 const isNode = require('detect-node')
 
-const { Key } = require('interface-datastore')
-const { Record } = require('libp2p-record')
-
 const DatastorePubsub = require('../src')
+
+const {
+  Key,
+  MemoryDatastore
+} = require('interface-datastore')
+const {
+  createPubsubNode,
+  connectPubsubNodes,
+  waitFor,
+  waitForPeerToSubscribe
+} = require('./utils')
+const { Record } = require('libp2p-record')
 const { keyToTopic, topicToKey } = require('../src/utils')
-const { connect, waitFor, waitForPeerToSubscribe, spawnDaemon, stopDaemon } = require('./utils')
-const promisify = require('promisify-es6')
 
 // Always returning the expected values
 // Valid record and select the new one
@@ -33,46 +40,37 @@ describe('datastore-pubsub', function () {
 
   if (!isNode) return
 
-  let ipfsdA = null
-  let ipfsdB = null
-  let ipfsdAId = null
-  let ipfsdBId = null
   let pubsubA = null
   let datastoreA = null
   let peerIdA = null
+  const registrarRecordA = {}
 
+  let pubsubB = null
   let datastoreB = null
   let peerIdB = null
-  let pubsubB = null
+  const registrarRecordB = {}
 
-  // spawn daemon and create DatastorePubsub instances
-  before(async function () {
-    [ipfsdA, ipfsdB] = await Promise.all([spawnDaemon(), spawnDaemon()]);
-    [ipfsdAId, ipfsdBId] = await Promise.all([ipfsdA.api.id(), ipfsdB.api.id()])
+  // Mount pubsub protocol and create datastore instances
+  before(async () => {
+    [pubsubA, pubsubB] = await Promise.all([
+      createPubsubNode(registrarRecordA),
+      createPubsubNode(registrarRecordB)
+    ])
+    peerIdA = pubsubA.peerInfo.id
+    peerIdB = pubsubB.peerInfo.id
 
-    await connect(ipfsdA, ipfsdAId, ipfsdB, ipfsdBId)
-
-    pubsubA = ipfsdA.api.pubsub
-    datastoreA = {
-      get: promisify(ipfsdA.api._repo.datastore.get, {
-        context: ipfsdA.api._repo.datastore
-      }),
-      put: promisify(ipfsdA.api._repo.datastore.put, {
-        context: ipfsdA.api._repo.datastore
+    await connectPubsubNodes(
+      {
+        router: pubsubA,
+        registrar: registrarRecordA
+      },
+      {
+        router: pubsubB,
+        registrar: registrarRecordB
       })
-    }
-    peerIdA = ipfsdA.api._peerInfo.id
 
-    pubsubB = ipfsdB.api.pubsub
-    datastoreB = {
-      get: promisify(ipfsdB.api._repo.datastore.get, {
-        context: ipfsdB.api._repo.datastore
-      }),
-      put: promisify(ipfsdB.api._repo.datastore.put, {
-        context: ipfsdB.api._repo.datastore
-      })
-    }
-    peerIdB = ipfsdB.api._peerInfo.id
+    datastoreA = new MemoryDatastore()
+    datastoreB = new MemoryDatastore()
   })
 
   const value = 'value'
@@ -97,8 +95,8 @@ describe('datastore-pubsub', function () {
 
   after(() => {
     return Promise.all([
-      stopDaemon(ipfsdA),
-      stopDaemon(ipfsdB)
+      pubsubA.stop(),
+      pubsubB.stop()
     ])
   })
 
@@ -106,7 +104,7 @@ describe('datastore-pubsub', function () {
     const dsPubsubA = new DatastorePubsub(pubsubA, datastoreA, peerIdA, smoothValidator)
     const subsTopic = keyToTopic(`/${keyRef}`)
 
-    let subscribers = await pubsubA.ls()
+    let subscribers = await pubsubA.getTopics()
 
     expect(subscribers).to.exist()
     expect(subscribers).to.not.include(subsTopic) // not subscribed key reference yet
@@ -119,18 +117,18 @@ describe('datastore-pubsub', function () {
 
     expect(res).to.not.exist()
 
-    subscribers = await pubsubA.ls()
+    subscribers = await pubsubA.getTopics()
 
     expect(subscribers).to.exist()
     expect(subscribers).to.include(subsTopic) // subscribed key reference
   })
 
-  it('should put correctly to daemon A and daemon B should not receive it without subscribing', async () => {
+  it('should put correctly to node A and node B should not receive it without subscribing', async () => {
     const dsPubsubA = new DatastorePubsub(pubsubA, datastoreA, peerIdA, smoothValidator)
     const dsPubsubB = new DatastorePubsub(pubsubB, datastoreB, peerIdB, smoothValidator)
     const subsTopic = keyToTopic(`/${keyRef}`)
 
-    const res = await pubsubB.ls()
+    const res = await pubsubB.getTopics()
     expect(res).to.exist()
     expect(res).to.not.include(subsTopic) // not subscribed
 
@@ -172,7 +170,7 @@ describe('datastore-pubsub', function () {
         expect(err.code).to.equal('ERR_NOT_FOUND')
       })
 
-    await waitForPeerToSubscribe(subsTopic, ipfsdBId, ipfsdA)
+    await waitForPeerToSubscribe(subsTopic, peerIdB, pubsubA)
 
     // subscribe in order to understand when the message arrive to the node
     await pubsubB.subscribe(subsTopic, messageHandler)
@@ -198,7 +196,7 @@ describe('datastore-pubsub', function () {
       receivedMessage = true
     }
 
-    const res = await pubsubB.ls()
+    const res = await pubsubB.getTopics()
     expect(res).to.exist()
     expect(res).to.not.include(subsTopic) // not subscribed
 
@@ -209,7 +207,7 @@ describe('datastore-pubsub', function () {
         expect(err.code).to.equal('ERR_NOT_FOUND')
       })
 
-    await waitForPeerToSubscribe(subsTopic, ipfsdBId, ipfsdA)
+    await waitForPeerToSubscribe(subsTopic, peerIdB, pubsubA)
 
     // subscribe in order to understand when the message arrive to the node
     await pubsubB.subscribe(subsTopic, messageHandler)
@@ -273,7 +271,7 @@ describe('datastore-pubsub', function () {
     expect(dsPubsubB).to.equal(undefined)
   })
 
-  it('should fail if it fails to validate the record', async () => {
+  it('should fail if it fails getTopics to validate the record', async () => {
     const customValidator = {
       validate: () => {
         return false // return false validation
@@ -298,7 +296,7 @@ describe('datastore-pubsub', function () {
         expect(err.code).to.equal('ERR_NOT_FOUND')
       })
 
-    await waitForPeerToSubscribe(subsTopic, ipfsdBId, ipfsdA)
+    await waitForPeerToSubscribe(subsTopic, peerIdB, pubsubA)
 
     // subscribe in order to understand when the message arrive to the node
     await pubsubB.subscribe(subsTopic, messageHandler)
@@ -347,7 +345,7 @@ describe('datastore-pubsub', function () {
         expect(err.code).to.equal('ERR_NOT_FOUND')
       })
 
-    await waitForPeerToSubscribe(subsTopic, ipfsdBId, ipfsdA)
+    await waitForPeerToSubscribe(subsTopic, peerIdB, pubsubA)
 
     // subscribe in order to understand when the message arrive to the node
     await pubsubB.subscribe(subsTopic, messageHandler)
@@ -397,7 +395,7 @@ describe('datastore-pubsub', function () {
         expect(err.code).to.equal('ERR_NOT_FOUND')
       })
 
-    await waitForPeerToSubscribe(subsTopic, ipfsdBId, ipfsdA)
+    await waitForPeerToSubscribe(subsTopic, peerIdB, pubsubA)
 
     // subscribe in order to understand when the message arrive to the node
     await pubsubB.subscribe(subsTopic, messageHandler)
@@ -439,7 +437,7 @@ describe('datastore-pubsub', function () {
       receivedMessage = true
     }
 
-    const res = await pubsubB.ls()
+    const res = await pubsubB.getTopics()
     expect(res).to.not.include(subsTopic) // not subscribed
 
     // causes pubsub b to become subscribed to the topic
@@ -449,7 +447,7 @@ describe('datastore-pubsub', function () {
         expect(err.code).to.equal('ERR_NOT_FOUND')
       })
 
-    await waitForPeerToSubscribe(subsTopic, ipfsdBId, ipfsdA)
+    await waitForPeerToSubscribe(subsTopic, peerIdB, pubsubA)
 
     // subscribe in order to understand when the message arrive to the node
     await pubsubB.subscribe(subsTopic, messageHandler)
@@ -483,7 +481,7 @@ describe('datastore-pubsub', function () {
       receivedMessage = true
     }
 
-    const res = await pubsubB.ls()
+    const res = await pubsubB.getTopics()
     expect(res).to.not.include(subsTopic) // not subscribed
 
     // causes pubsub b to become subscribed to the topic
@@ -493,7 +491,7 @@ describe('datastore-pubsub', function () {
         expect(err.code).to.equal('ERR_NOT_FOUND')
       })
 
-    await waitForPeerToSubscribe(subsTopic, ipfsdBId, ipfsdA)
+    await waitForPeerToSubscribe(subsTopic, peerIdB, pubsubA)
 
     // subscribe in order to understand when the message arrive to the node
     await pubsubB.subscribe(subsTopic, messageHandler)
