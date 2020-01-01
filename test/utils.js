@@ -88,25 +88,14 @@ exports.connectPubsubNodes = async (pubsubA, pubsubB) => {
 }
 
 // Wait for a condition to become true.  When its true, callback is called.
-exports.waitFor = (predicate) => {
-  return pWaitFor(async () => {
-    if (await predicate()) {
-      return true
-    }
-
-    return false
-  }, {
-    interval: 1000,
-    timeout: 10000
-  })
-}
+exports.waitFor = predicate => pWaitFor(predicate, { interval: 1000, timeout: 10000 })
 
 // Wait until a peer subscribes a topic
 exports.waitForPeerToSubscribe = (topic, peer, node) => {
   return pWaitFor(async () => {
     const peers = await node.getSubscribers(topic)
 
-    if (peers.includes(peer._idB58String)) {
+    if (peers.includes(peer.toB58String())) {
       return true
     }
 
