@@ -1,3 +1,8 @@
+<a name="0.2.3"></a>
+## [0.2.3](https://github.com/ipfs/js-datastore-pubsub/compare/v0.2.2...v0.2.3) (2020-01-09)
+
+
+
 <a name="0.2.2"></a>
 ## [0.2.2](https://github.com/ipfs/js-datastore-pubsub/compare/v0.2.1...v0.2.2) (2020-01-02)
 
