@@ -92,7 +92,7 @@ class DatastorePubsub {
     }
 
     const stringifiedTopic = keyToTopic(key)
-    const subscriptions = await this._pubsub.getTopics()
+    const subscriptions = await this._pubsub.ls()
 
     // If already subscribed, just try to get it
     if (subscriptions && Array.isArray(subscriptions) && subscriptions.indexOf(stringifiedTopic) > -1) {

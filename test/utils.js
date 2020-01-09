@@ -1,107 +1,83 @@
 'use strict'
 
-const PeerId = require('peer-id')
-const PeerInfo = require('peer-info')
-const DuplexPair = require('it-pair/duplex')
+const ipfs = require('ipfs')
+const DaemonFactory = require('ipfsd-ctl')
+const delay = require('delay')
 
-const Pubsub = require('libp2p-gossipsub')
-const { multicodec } = require('libp2p-gossipsub')
-
-const pWaitFor = require('p-wait-for')
-
-const createPeerInfo = async () => {
-  const peerId = await PeerId.create({ bits: 1024 })
-
-  return PeerInfo.create(peerId)
-}
-
-const createMockRegistrar = (registrarRecord) => ({
-  handle: () => {},
-  register: ({ multicodecs, _onConnect, _onDisconnect }) => {
-    const rec = registrarRecord[multicodecs[0]] || {}
-
-    registrarRecord[multicodecs[0]] = {
-      ...rec,
-      onConnect: _onConnect,
-      onDisconnect: _onDisconnect
-    }
-
-    return multicodecs[0]
-  },
-  unregister: () => {}
-})
-
-// as created by libp2p
-exports.createPubsubNode = async (registrarRecord) => {
-  const peerInfo = await createPeerInfo()
-  peerInfo.protocols.add(multicodec)
-  const pubsub = new Pubsub(peerInfo, createMockRegistrar(registrarRecord))
-
-  await pubsub.start()
-
-  return {
-    peerInfo: pubsub.peerInfo,
-    subscribe: (topic, handler) => {
-      pubsub.subscribe(topic)
-
-      pubsub.on(topic, handler)
-    },
-    unsubscribe: (topic, handler) => {
-      if (!handler) {
-        pubsub.removeAllListeners(topic)
-      } else {
-        pubsub.removeListener(topic, handler)
-      }
-
-      pubsub.unsubscribe(topic)
-    },
-    publish: (topic, data) => pubsub.publish(topic, data),
-    getTopics: () => pubsub.getTopics(),
-    getSubscribers: (topic) => pubsub.getSubscribers(topic),
-    stop: () => pubsub.stop()
+const config = {
+  Addresses: {
+    API: '/ip4/0.0.0.0/tcp/0',
+    Gateway: '/ip4/0.0.0.0/tcp/0',
+    Swarm: ['/ip4/0.0.0.0/tcp/0', '/ip4/0.0.0.0/tcp/0/ws']
   }
 }
 
-const ConnectionPair = () => {
-  const [d0, d1] = DuplexPair()
+// spawn a daemon
+const spawnDaemon = () => {
+  const d = DaemonFactory.create({
+    exec: ipfs,
+    type: 'proc',
+    IpfsApi: require('ipfs-http-client')
+  })
 
-  return [
-    {
-      stream: d0,
-      newStream: () => Promise.resolve({ stream: d0 })
-    },
-    {
-      stream: d1,
-      newStream: () => Promise.resolve({ stream: d1 })
+  return d.spawn({
+    disposable: true,
+    bits: 512,
+    config,
+    EXPERIMENTAL: {
+      pubsub: true
     }
-  ]
+  })
 }
 
-exports.connectPubsubNodes = async (pubsubA, pubsubB) => {
-  const onConnectA = pubsubA.registrar[multicodec].onConnect
-  const onConnectB = pubsubB.registrar[multicodec].onConnect
+// stop a daemon
+const stopDaemon = async (daemon) => {
+  await daemon.stop()
+  await new Promise((resolve) => setTimeout(() => resolve(), 200))
+  return daemon.cleanup()
+}
 
-  // Notice peers of connection
-  const [c0, c1] = ConnectionPair()
-  await onConnectA(pubsubB.router.peerInfo, c0)
-  await onConnectB(pubsubA.router.peerInfo, c1)
+// connect two peers
+const connect = (dA, dAId, dB, dBId) => {
+  const dALocalAddress = dAId.addresses.find(a => a.includes('127.0.0.1'))
+  const dBLocalAddress = dBId.addresses.find(a => a.includes('127.0.0.1'))
+
+  return Promise.all([
+    dA.api.swarm.connect(dBLocalAddress),
+    dB.api.swarm.connect(dALocalAddress)
+  ])
 }
 
 // Wait for a condition to become true.  When its true, callback is called.
-exports.waitFor = predicate => pWaitFor(predicate, { interval: 1000, timeout: 10000 })
-
-// Wait until a peer subscribes a topic
-exports.waitForPeerToSubscribe = (topic, peer, node) => {
-  return pWaitFor(async () => {
-    const peers = await node.getSubscribers(topic)
-
-    if (peers.includes(peer.toB58String())) {
-      return true
+const waitFor = async (predicate) => {
+  for (let i = 0; i < 10; i++) {
+    if (await predicate()) {
+      return
     }
 
-    return false
-  }, {
-    interval: 1000,
-    timeout: 5000
-  })
+    await delay(1000)
+  }
+
+  throw new Error('waitFor time expired')
+}
+
+// Wait until a peer subscribes a topic
+const waitForPeerToSubscribe = async (topic, peer, daemon) => {
+  for (let i = 0; i < 5; i++) {
+    const peers = await daemon.api.pubsub.peers(topic)
+
+    if (peers.includes(peer.id)) {
+      return
+    }
+
+    await delay(1000)
+  }
+}
+
+module.exports = {
+  connect,
+  waitFor,
+  waitForPeerToSubscribe,
+  spawnDaemon,
+  stopDaemon
 }
