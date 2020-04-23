@@ -1,5 +1,6 @@
 'use strict'
 
+const { Buffer } = require('buffer')
 const { Key } = require('interface-datastore')
 const { encodeBase32, keyToTopic, topicToKey } = require('./utils')
 
