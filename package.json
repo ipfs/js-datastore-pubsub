@@ -1,6 +1,6 @@
 {
   "name": "datastore-pubsub",
-  "version": "0.3.0",
+  "version": "0.3.1",
   "description": "Responsible for providing an interface-datastore compliant api to pubsub",
   "leadMaintainer": "Vasco Santos <vasco.santos@moxy.studio>",
   "main": "src/index.js",
@@ -52,9 +52,9 @@
     "sinon": "^7.4.1"
   },
   "contributors": [
-    "Alex Potsides <alex@achingbrain.net>",
     "Vasco Santos <vasco.santos@moxy.studio>",
-    "Vasco Santos <vasco.santos@ua.pt>",
+    "Alex Potsides <alex@achingbrain.net>",
+    "Hugo Dias <hugomrdias@gmail.com>",
     "Victor Bjelkholm <victorbjelkholm@gmail.com>"
   ]
 }
