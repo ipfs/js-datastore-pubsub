@@ -1,3 +1,13 @@
+<a name="0.3.1"></a>
+## [0.3.1](https://github.com/ipfs/js-datastore-pubsub/compare/v0.3.0...v0.3.1) (2020-04-24)
+
+
+### Bug Fixes
+
+* remove node globals ([#21](https://github.com/ipfs/js-datastore-pubsub/issues/21)) ([be8de2c](https://github.com/ipfs/js-datastore-pubsub/commit/be8de2c))
+
+
+
 <a name="0.3.0"></a>
 # [0.3.0](https://github.com/ipfs/js-datastore-pubsub/compare/v0.2.3...v0.3.0) (2020-01-09)
 
