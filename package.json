@@ -36,7 +36,7 @@
     "debug": "^4.1.1",
     "err-code": "^2.0.0",
     "interface-datastore": "^1.0.2",
-    "multibase": "~0.7.0"
+    "multibase": "^0.7.0"
   },
   "devDependencies": {
     "aegir": "^22.0.0",
@@ -45,7 +45,7 @@
     "dirty-chai": "^2.0.1",
     "it-pair": "^1.0.0",
     "libp2p-gossipsub": "^0.3.0",
-    "libp2p-record": "~0.7.0",
+    "libp2p-record": "^0.7.0",
     "p-wait-for": "^3.1.0",
     "peer-id": "^0.13.6",
     "peer-info": "^0.17.5",
