@@ -1,7 +1,7 @@
 'use strict'
 
 const { Buffer } = require('buffer')
-const { Key } = require('interface-datastore')
+const { Key, Adapter } = require('interface-datastore')
 const { encodeBase32, keyToTopic, topicToKey } = require('./utils')
 
 const errcode = require('err-code')
@@ -11,7 +11,7 @@ log.error = debug('datastore-pubsub:publisher:error')
 
 // DatastorePubsub is responsible for providing an api for pubsub to be used as a datastore with
 // [TieredDatastore]{@link https://github.com/ipfs/js-datastore-core/blob/master/src/tiered.js}
-class DatastorePubsub {
+class DatastorePubsub extends Adapter {
   /**
    * Creates an instance of DatastorePubsub.
    * @param {*} pubsub - pubsub implementation.
@@ -24,6 +24,8 @@ class DatastorePubsub {
    * @memberof DatastorePubsub
    */
   constructor (pubsub, datastore, peerId, validator, subscriptionKeyFn) {
+    super()
+
     if (!validator) {
       throw errcode(new TypeError('missing validator'), 'ERR_INVALID_PARAMETERS')
     }
