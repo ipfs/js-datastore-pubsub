@@ -1,7 +1,6 @@
 'use strict'
 
 const PeerId = require('peer-id')
-const PeerInfo = require('peer-info')
 const DuplexPair = require('it-pair/duplex')
 
 const Pubsub = require('libp2p-gossipsub')
@@ -9,14 +8,15 @@ const { multicodec } = require('libp2p-gossipsub')
 
 const pWaitFor = require('p-wait-for')
 
-const createPeerInfo = async () => {
-  const peerId = await PeerId.create({ bits: 1024 })
-
-  return PeerInfo.create(peerId)
-}
-
 const createMockRegistrar = (registrarRecord) => ({
-  handle: () => {},
+  handle: (multicodecs, handler) => {
+    const rec = registrarRecord[multicodecs[0]] || {}
+
+    registrarRecord[multicodecs[0]] = {
+      ...rec,
+      handler
+    }
+  },
   register: ({ multicodecs, _onConnect, _onDisconnect }) => {
     const rec = registrarRecord[multicodecs[0]] || {}
 
@@ -33,14 +33,13 @@ const createMockRegistrar = (registrarRecord) => ({
 
 // as created by libp2p
 exports.createPubsubNode = async (registrarRecord) => {
-  const peerInfo = await createPeerInfo()
-  peerInfo.protocols.add(multicodec)
-  const pubsub = new Pubsub(peerInfo, createMockRegistrar(registrarRecord))
+  const peerId = await PeerId.create({ bits: 1024 })
+  const pubsub = new Pubsub(peerId, createMockRegistrar(registrarRecord))
 
   await pubsub.start()
 
   return {
-    peerInfo: pubsub.peerInfo,
+    peerId: pubsub.peerId,
     subscribe: (topic, handler) => {
       pubsub.subscribe(topic)
 
@@ -80,11 +79,29 @@ const ConnectionPair = () => {
 exports.connectPubsubNodes = async (pubsubA, pubsubB) => {
   const onConnectA = pubsubA.registrar[multicodec].onConnect
   const onConnectB = pubsubB.registrar[multicodec].onConnect
+  const handleA = pubsubA.registrar[multicodec].handler
+  const handleB = pubsubB.registrar[multicodec].handler
 
   // Notice peers of connection
   const [c0, c1] = ConnectionPair()
-  await onConnectA(pubsubB.router.peerInfo, c0)
-  await onConnectB(pubsubA.router.peerInfo, c1)
+  await onConnectA(pubsubB.router.peerId, c0)
+  await onConnectB(pubsubA.router.peerId, c1)
+
+  await handleB({
+    protocol: multicodec,
+    stream: c1.stream,
+    connection: {
+      remotePeer: pubsubA.router.peerId
+    }
+  })
+
+  await handleA({
+    protocol: multicodec,
+    stream: c0.stream,
+    connection: {
+      remotePeer: pubsubB.router.peerId
+    }
+  })
 }
 
 // Wait for a condition to become true.  When its true, callback is called.

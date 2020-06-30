@@ -57,8 +57,8 @@ describe('datastore-pubsub', function () {
       createPubsubNode(registrarRecordA),
       createPubsubNode(registrarRecordB)
     ])
-    peerIdA = pubsubA.peerInfo.id
-    peerIdB = pubsubB.peerInfo.id
+    peerIdA = pubsubA.peerId
+    peerIdB = pubsubB.peerId
 
     await connectPubsubNodes(
       {
