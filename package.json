@@ -45,7 +45,7 @@
     "dirty-chai": "^2.0.1",
     "it-pair": "^1.0.0",
     "libp2p-gossipsub": "^0.4.5",
-    "libp2p-record": "~0.7.3",
+    "libp2p-record": "^0.7.3",
     "p-wait-for": "^3.1.0",
     "peer-id": "^0.13.13",
     "sinon": "^9.0.2"
