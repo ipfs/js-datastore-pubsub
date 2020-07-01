@@ -1,3 +1,18 @@
+<a name="0.3.3"></a>
+## [0.3.3](https://github.com/ipfs/js-datastore-pubsub/compare/v0.3.1...v0.3.3) (2020-07-01)
+
+
+### Bug Fixes
+
+* **ci:** add empty commit to fix lint checks on master ([f3938aa](https://github.com/ipfs/js-datastore-pubsub/commit/f3938aa))
+
+
+### Features
+
+* adds interface-datastore streaming api ([#26](https://github.com/ipfs/js-datastore-pubsub/issues/26)) ([22eeb4e](https://github.com/ipfs/js-datastore-pubsub/commit/22eeb4e))
+
+
+
 <a name="0.3.2"></a>
 ## [0.3.2](https://github.com/ipfs/js-datastore-pubsub/compare/v0.3.1...v0.3.2) (2020-05-11)
 
