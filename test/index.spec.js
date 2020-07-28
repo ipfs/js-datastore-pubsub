@@ -1,14 +1,12 @@
 /* eslint-env mocha */
 'use strict'
 
-const { Buffer } = require('buffer')
-const chai = require('chai')
-const dirtyChai = require('dirty-chai')
-const expect = chai.expect
-chai.use(dirtyChai)
+const { expect } = require('aegir/utils/chai')
 const sinon = require('sinon')
 const errcode = require('err-code')
 const isNode = require('detect-node')
+const TextEncoder = require('ipfs-utils/src/text-encoder')
+const utf8Encoder = new TextEncoder('utf8')
 
 const DatastorePubsub = require('../src')
 
@@ -85,7 +83,7 @@ describe('datastore-pubsub', function () {
   beforeEach(() => {
     keyRef = `key${testCounter}`
     key = (new Key(keyRef)).toBuffer()
-    record = new Record(key, Buffer.from(value))
+    record = new Record(key, utf8Encoder.encode(value))
 
     serializedRecord = record.serialize()
   })
@@ -110,13 +108,8 @@ describe('datastore-pubsub', function () {
     expect(subscribers).to.exist()
     expect(subscribers).to.not.include(subsTopic) // not subscribed key reference yet
 
-    const res = await dsPubsubA.get(key)
-      .then(() => expect.fail('Should have failed to fetch key'), (err) => {
-        // not locally stored record
-        expect(err.code).to.equal('ERR_NOT_FOUND')
-      })
-
-    expect(res).to.not.exist()
+    // not locally stored record
+    await expect(dsPubsubA.get(key)).to.eventually.be.rejected().with.property('code', 'ERR_NOT_FOUND')
 
     subscribers = await pubsubA.getTopics()
 
@@ -327,7 +320,7 @@ describe('datastore-pubsub', function () {
     }
 
     const newValue = 'new value'
-    const record = new Record(key, Buffer.from(newValue))
+    const record = new Record(key, utf8Encoder.encode(newValue))
     const newSerializedRecord = record.serialize()
 
     const dsPubsubA = new DatastorePubsub(pubsubA, datastoreA, peerIdA, smoothValidator)
@@ -377,7 +370,7 @@ describe('datastore-pubsub', function () {
     }
 
     const newValue = 'new value'
-    const record = new Record(key, Buffer.from(newValue))
+    const record = new Record(key, utf8Encoder.encode(newValue))
     const newSerializedRecord = record.serialize()
 
     const dsPubsubA = new DatastorePubsub(pubsubA, datastoreA, peerIdA, smoothValidator)
