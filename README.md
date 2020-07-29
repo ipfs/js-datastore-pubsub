@@ -75,9 +75,9 @@ Try to subscribe a topic with Pubsub and receive the current local value if avai
 
 Arguments:
 
-- `key` (Buffer): a key representing a unique identifier of the object to subscribe.
+- `key` (Uint8Array): a key representing a unique identifier of the object to subscribe.
 
-Returns `Promise<Buffer>` containing the most recent known record stored.
+Returns `Promise<Uint8Array>` containing the most recent known record stored.
 
 #### Put
 
@@ -89,8 +89,8 @@ Publishes a value through pubsub.
 
 Arguments:
 
-- `key` (Buffer): a key representing a unique identifier of the object to publish.
-- `val` (Buffer): value to be propagated.
+- `key` (Uint8Array): a key representing a unique identifier of the object to publish.
+- `val` (Uint8Array): value to be propagated.
 
 Returns `Promise<void>`
 
@@ -104,7 +104,7 @@ Unsubscribe a previously subscribe value.
 
 Arguments:
 
-- `key` (Buffer): a key representing a unique identifier of the object to publish.
+- `key` (Uint8Array): a key representing a unique identifier of the object to publish.
 
 Returns `Promise<void>`
 

@@ -1,6 +1,5 @@
 'use strict'
 
-const { Buffer } = require('buffer')
 const { Key, Adapter } = require('interface-datastore')
 const { encodeBase32, keyToTopic, topicToKey } = require('./utils')
 
@@ -54,20 +53,20 @@ class DatastorePubsub extends Adapter {
 
   /**
    * Publishes a value through pubsub.
-   * @param {Buffer} key identifier of the value to be published.
-   * @param {Buffer} val value to be propagated.
+   * @param {Uint8Array} key identifier of the value to be published.
+   * @param {Uint8Array} val value to be propagated.
    * @returns {Promise}
    */
   async put (key, val) { // eslint-disable-line require-await
-    if (!Buffer.isBuffer(key)) {
+    if (!(key instanceof Uint8Array)) {
       const errMsg = 'datastore key does not have a valid format'
 
       log.error(errMsg)
       throw errcode(new Error(errMsg), 'ERR_INVALID_DATASTORE_KEY')
     }
 
-    if (!Buffer.isBuffer(val)) {
-      const errMsg = 'received value is not a buffer'
+    if (!(val instanceof Uint8Array)) {
+      const errMsg = 'received value is not a Uint8Array'
 
       log.error(errMsg)
       throw errcode(new Error(errMsg), 'ERR_INVALID_VALUE_RECEIVED')
@@ -83,11 +82,11 @@ class DatastorePubsub extends Adapter {
 
   /**
    * Try to subscribe a topic with Pubsub and returns the local value if available.
-   * @param {Buffer} key identifier of the value to be subscribed.
-   * @returns {Promise<Buffer>}
+   * @param {Uint8Array} key identifier of the value to be subscribed.
+   * @returns {Promise<Uint8Array>}
    */
   async get (key) {
-    if (!Buffer.isBuffer(key)) {
+    if (!(key instanceof Uint8Array)) {
       const errMsg = 'datastore key does not have a valid format'
 
       log.error(errMsg)
@@ -118,7 +117,7 @@ class DatastorePubsub extends Adapter {
 
   /**
    * Unsubscribe topic.
-   * @param {Buffer} key identifier of the value to unsubscribe.
+   * @param {Uint8Array} key identifier of the value to unsubscribe.
    * @returns {void}
    */
   unsubscribe (key) {
@@ -148,7 +147,7 @@ class DatastorePubsub extends Adapter {
       throw errcode(new Error(errMsg), 'ERR_NOT_FOUND')
     }
 
-    if (!Buffer.isBuffer(dsVal)) {
+    if (!(dsVal instanceof Uint8Array)) {
       const errMsg = 'found record that we couldn\'t convert to a value'
 
       log.error(errMsg)
@@ -210,7 +209,7 @@ class DatastorePubsub extends Adapter {
     }
 
     if (isBetter) {
-      await this._storeRecord(Buffer.from(key), data)
+      await this._storeRecord(key, data)
     }
   }
 
@@ -251,7 +250,7 @@ class DatastorePubsub extends Adapter {
     let currentRecord
 
     try {
-      currentRecord = await this._getLocal(dsKey.toBuffer())
+      currentRecord = await this._getLocal(dsKey.uint8Array())
     } catch (err) {
       // if the old one is invalid, the new one is *always* better
       return true
