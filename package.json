@@ -34,7 +34,7 @@
   "dependencies": {
     "debug": "^4.1.1",
     "err-code": "^2.0.3",
-    "interface-datastore": "ipfs/interface-datastore#fix/remove-node-buffer",
+    "interface-datastore": "^2.0.0",
     "multibase": "^2.0.0"
   },
   "devDependencies": {
