@@ -82,7 +82,7 @@ describe('datastore-pubsub', function () {
   // prepare Record
   beforeEach(() => {
     keyRef = `key${testCounter}`
-    key = (new Key(keyRef)).toBuffer()
+    key = (new Key(keyRef)).uint8Array()
     record = new Record(key, utf8Encoder.encode(value))
 
     serializedRecord = record.serialize()

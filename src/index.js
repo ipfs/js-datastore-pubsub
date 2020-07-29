@@ -250,7 +250,7 @@ class DatastorePubsub extends Adapter {
     let currentRecord
 
     try {
-      currentRecord = await this._getLocal(dsKey.toBuffer())
+      currentRecord = await this._getLocal(dsKey.uint8Array())
     } catch (err) {
       // if the old one is invalid, the new one is *always* better
       return true
