@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset='utf-8'>
-  <title>datastore-pubsub 0.3.3 | Documentation</title>
+  <title>datastore-pubsub 0.4.0 | Documentation</title>
   <meta name='description' content='Responsible for providing an interface-datastore compliant api to pubsub'>
   <meta name='viewport' content='width=device-width,initial-scale=1'>
   <link href='assets/bass.css' rel='stylesheet'>
@@ -15,7 +15,7 @@
       <div id='split-left' class='overflow-auto fs0 height-viewport-100'>
         <div class='py1 px2'>
           <h3 class='mb0 no-anchor'>datastore-pubsub</h3>
-          <div class='mb1'><code>0.3.3</code></div>
+          <div class='mb1'><code>0.4.0</code></div>
           <input
             placeholder='Filter'
             id='filter-input'
@@ -87,7 +87,7 @@
     </h3>
     
     
-      <a class='fr fill-darken0 round round pad1x quiet h5' href='https://github.com/ipfs/js-datastore-pubsub/blob/9b1aaca3e2beb13c9e36da4e13f18445a9ffd614/src/index.js#L61-L82'>
+      <a class='fr fill-darken0 round round pad1x quiet h5' href='https://github.com/ipfs/js-datastore-pubsub/blob/c68945eacb6ee5addb8a9b1db5a80ecf84a0d567/src/index.js#L60-L81'>
       <span>src/index.js</span>
       </a>
     
@@ -96,7 +96,7 @@
 
   <p>Publishes a value through pubsub.</p>
 
-    <div class='pre p1 fill-light mt0'>put(key: <a href="https://nodejs.org/api/buffer.html">Buffer</a>, val: <a href="https://nodejs.org/api/buffer.html">Buffer</a>): <a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Promise">Promise</a></div>
+    <div class='pre p1 fill-light mt0'>put(key: <a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Uint8Array">Uint8Array</a>, val: <a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Uint8Array">Uint8Array</a>): <a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Promise">Promise</a></div>
   
   
 
@@ -113,7 +113,7 @@
       
         <div class='space-bottom0'>
           <div>
-            <span class='code bold'>key</span> <code class='quiet'>(<a href="https://nodejs.org/api/buffer.html">Buffer</a>)</code>
+            <span class='code bold'>key</span> <code class='quiet'>(<a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Uint8Array">Uint8Array</a>)</code>
 	    identifier of the value to be published.
 
           </div>
@@ -122,7 +122,7 @@
       
         <div class='space-bottom0'>
           <div>
-            <span class='code bold'>val</span> <code class='quiet'>(<a href="https://nodejs.org/api/buffer.html">Buffer</a>)</code>
+            <span class='code bold'>val</span> <code class='quiet'>(<a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Uint8Array">Uint8Array</a>)</code>
 	    value to be propagated.
 
           </div>
@@ -172,7 +172,7 @@
     </h3>
     
     
-      <a class='fr fill-darken0 round round pad1x quiet h5' href='https://github.com/ipfs/js-datastore-pubsub/blob/9b1aaca3e2beb13c9e36da4e13f18445a9ffd614/src/index.js#L89-L117'>
+      <a class='fr fill-darken0 round round pad1x quiet h5' href='https://github.com/ipfs/js-datastore-pubsub/blob/c68945eacb6ee5addb8a9b1db5a80ecf84a0d567/src/index.js#L88-L116'>
       <span>src/index.js</span>
       </a>
     
@@ -181,7 +181,7 @@
 
   <p>Try to subscribe a topic with Pubsub and returns the local value if available.</p>
 
-    <div class='pre p1 fill-light mt0'>get(key: <a href="https://nodejs.org/api/buffer.html">Buffer</a>): <a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Promise">Promise</a>&#x3C;<a href="https://nodejs.org/api/buffer.html">Buffer</a>></div>
+    <div class='pre p1 fill-light mt0'>get(key: <a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Uint8Array">Uint8Array</a>): <a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Promise">Promise</a>&#x3C;<a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Uint8Array">Uint8Array</a>></div>
   
   
 
@@ -198,7 +198,7 @@
       
         <div class='space-bottom0'>
           <div>
-            <span class='code bold'>key</span> <code class='quiet'>(<a href="https://nodejs.org/api/buffer.html">Buffer</a>)</code>
+            <span class='code bold'>key</span> <code class='quiet'>(<a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Uint8Array">Uint8Array</a>)</code>
 	    identifier of the value to be subscribed.
 
           </div>
@@ -213,7 +213,7 @@
   
     
       <div class='py1 quiet mt1 prose-big'>Returns</div>
-      <code><a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Promise">Promise</a>&#x3C;<a href="https://nodejs.org/api/buffer.html">Buffer</a>></code>:
+      <code><a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Promise">Promise</a>&#x3C;<a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Uint8Array">Uint8Array</a>></code>:
         
 
       
@@ -248,7 +248,7 @@
     </h3>
     
     
-      <a class='fr fill-darken0 round round pad1x quiet h5' href='https://github.com/ipfs/js-datastore-pubsub/blob/9b1aaca3e2beb13c9e36da4e13f18445a9ffd614/src/index.js#L124-L128'>
+      <a class='fr fill-darken0 round round pad1x quiet h5' href='https://github.com/ipfs/js-datastore-pubsub/blob/c68945eacb6ee5addb8a9b1db5a80ecf84a0d567/src/index.js#L123-L127'>
       <span>src/index.js</span>
       </a>
     
@@ -257,7 +257,7 @@
 
   <p>Unsubscribe topic.</p>
 
-    <div class='pre p1 fill-light mt0'>unsubscribe(key: <a href="https://nodejs.org/api/buffer.html">Buffer</a>): void</div>
+    <div class='pre p1 fill-light mt0'>unsubscribe(key: <a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Uint8Array">Uint8Array</a>): void</div>
   
   
 
@@ -274,7 +274,7 @@
       
         <div class='space-bottom0'>
           <div>
-            <span class='code bold'>key</span> <code class='quiet'>(<a href="https://nodejs.org/api/buffer.html">Buffer</a>)</code>
+            <span class='code bold'>key</span> <code class='quiet'>(<a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Uint8Array">Uint8Array</a>)</code>
 	    identifier of the value to unsubscribe.
 
           </div>
@@ -324,7 +324,7 @@
     </h3>
     
     
-      <a class='fr fill-darken0 round round pad1x quiet h5' href='https://github.com/ipfs/js-datastore-pubsub/blob/9b1aaca3e2beb13c9e36da4e13f18445a9ffd614/src/index.js#L26-L53'>
+      <a class='fr fill-darken0 round round pad1x quiet h5' href='https://github.com/ipfs/js-datastore-pubsub/blob/c68945eacb6ee5addb8a9b1db5a80ecf84a0d567/src/index.js#L25-L52'>
       <span>src/index.js</span>
       </a>
     
