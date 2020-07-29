@@ -1,3 +1,13 @@
+<a name="0.4.0"></a>
+# [0.4.0](https://github.com/ipfs/js-datastore-pubsub/compare/v0.3.3...v0.4.0) (2020-07-29)
+
+
+### Bug Fixes
+
+* replace node buffers with uint8arrays ([#36](https://github.com/ipfs/js-datastore-pubsub/issues/36)) ([857a7ec](https://github.com/ipfs/js-datastore-pubsub/commit/857a7ec))
+
+
+
 <a name="0.3.3"></a>
 ## [0.3.3](https://github.com/ipfs/js-datastore-pubsub/compare/v0.3.1...v0.3.3) (2020-07-01)
 
