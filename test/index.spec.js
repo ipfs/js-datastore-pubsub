@@ -5,8 +5,8 @@ const { expect } = require('aegir/utils/chai')
 const sinon = require('sinon')
 const errcode = require('err-code')
 const isNode = require('detect-node')
-const TextEncoder = require('ipfs-utils/src/text-encoder')
-const utf8Encoder = new TextEncoder('utf8')
+const uint8ArrayToString = require('uint8arrays/to-string')
+const uint8ArrayFromString = require('uint8arrays/from-string')
 
 const DatastorePubsub = require('../src')
 
@@ -83,7 +83,7 @@ describe('datastore-pubsub', function () {
   beforeEach(() => {
     keyRef = `key${testCounter}`
     key = (new Key(keyRef)).uint8Array()
-    record = new Record(key, utf8Encoder.encode(value))
+    record = new Record(key, uint8ArrayFromString(value))
 
     serializedRecord = record.serialize()
   })
@@ -320,7 +320,7 @@ describe('datastore-pubsub', function () {
     }
 
     const newValue = 'new value'
-    const record = new Record(key, utf8Encoder.encode(newValue))
+    const record = new Record(key, uint8ArrayFromString(newValue))
     const newSerializedRecord = record.serialize()
 
     const dsPubsubA = new DatastorePubsub(pubsubA, datastoreA, peerIdA, smoothValidator)
@@ -370,7 +370,7 @@ describe('datastore-pubsub', function () {
     }
 
     const newValue = 'new value'
-    const record = new Record(key, utf8Encoder.encode(newValue))
+    const record = new Record(key, uint8ArrayFromString(newValue))
     const newSerializedRecord = record.serialize()
 
     const dsPubsubA = new DatastorePubsub(pubsubA, datastoreA, peerIdA, smoothValidator)
@@ -419,7 +419,7 @@ describe('datastore-pubsub', function () {
 
   it('should subscribe the topic and after a message being received, discard it using the subscriptionKeyFn', async () => {
     const subscriptionKeyFn = (key) => {
-      expect(key.toString()).to.equal(`/${keyRef}`)
+      expect(uint8ArrayToString(key)).to.equal(`/${keyRef}`)
       throw new Error('DISCARD MESSAGE')
     }
     const dsPubsubA = new DatastorePubsub(pubsubA, datastoreA, peerIdA, smoothValidator)
@@ -462,7 +462,7 @@ describe('datastore-pubsub', function () {
 
   it('should subscribe the topic and after a message being received, change its key using subscriptionKeyFn', async () => {
     const subscriptionKeyFn = (key) => {
-      expect(key.toString()).to.equal(`/${keyRef}`)
+      expect(uint8ArrayToString(key)).to.equal(`/${keyRef}`)
       return topicToKey(`${keyToTopic(key)}new`)
     }
     const dsPubsubA = new DatastorePubsub(pubsubA, datastoreA, peerIdA, smoothValidator)
@@ -497,8 +497,7 @@ describe('datastore-pubsub', function () {
     // get from datastore
     const result = await dsPubsubB.get(keyNew)
     const receivedRecord = Record.deserialize(result)
-
-    expect(receivedRecord.value.toString()).to.equal(value)
+    expect(uint8ArrayToString(receivedRecord.value)).to.equal(value)
   })
 
   it('should subscribe a topic only once', async () => {
