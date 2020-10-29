@@ -13,12 +13,13 @@ log.error = debug('datastore-pubsub:publisher:error')
 class DatastorePubsub extends Adapter {
   /**
    * Creates an instance of DatastorePubsub.
+   *
    * @param {*} pubsub - pubsub implementation.
    * @param {*} datastore - datastore instance.
    * @param {*} peerId - peer-id instance.
    * @param {Object} validator - validator functions.
-   * @param {function(record, peerId, callback)} validator.validate - function to validate a record.
-   * @param {function(received, current, callback)} validator.select - function to select the newest between two records.
+   * @param {(record: uint8Array, peerId: PeerId) => boolean} validator.validate - function to validate a record.
+   * @param {(received: uint8Array, current: uint8Array) => boolean} validator.select - function to select the newest between two records.
    * @param {function(key, callback)} subscriptionKeyFn - optional function to manipulate the key topic received before processing it.
    * @memberof DatastorePubsub
    */
@@ -53,8 +54,9 @@ class DatastorePubsub extends Adapter {
 
   /**
    * Publishes a value through pubsub.
-   * @param {Uint8Array} key identifier of the value to be published.
-   * @param {Uint8Array} val value to be propagated.
+   *
+   * @param {Uint8Array} key - identifier of the value to be published.
+   * @param {Uint8Array} val - value to be propagated.
    * @returns {Promise}
    */
   async put (key, val) { // eslint-disable-line require-await
@@ -82,7 +84,8 @@ class DatastorePubsub extends Adapter {
 
   /**
    * Try to subscribe a topic with Pubsub and returns the local value if available.
-   * @param {Uint8Array} key identifier of the value to be subscribed.
+   *
+   * @param {Uint8Array} key - identifier of the value to be subscribed.
    * @returns {Promise<Uint8Array>}
    */
   async get (key) {
@@ -117,7 +120,8 @@ class DatastorePubsub extends Adapter {
 
   /**
    * Unsubscribe topic.
-   * @param {Uint8Array} key identifier of the value to unsubscribe.
+   *
+   * @param {Uint8Array} key - identifier of the value to unsubscribe.
    * @returns {void}
    */
   unsubscribe (key) {

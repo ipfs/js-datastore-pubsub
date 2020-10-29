@@ -32,19 +32,19 @@
   },
   "homepage": "https://github.com/ipfs/js-datastore-pubsub#readme",
   "dependencies": {
-    "debug": "^4.1.1",
+    "debug": "^4.2.0",
     "err-code": "^2.0.3",
     "interface-datastore": "^2.0.0",
     "uint8arrays": "^1.1.0"
   },
   "devDependencies": {
-    "aegir": "^26.0.0",
+    "aegir": "^28.1.0",
     "detect-node": "^2.0.4",
     "it-pair": "^1.0.0",
     "libp2p-gossipsub": "^0.5.0",
     "libp2p-record": "^0.9.0",
     "p-wait-for": "^3.1.0",
-    "peer-id": "^0.14.0",
+    "peer-id": "^0.14.2",
     "sinon": "^9.0.2"
   },
   "contributors": [

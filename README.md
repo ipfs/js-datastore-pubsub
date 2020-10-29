@@ -59,7 +59,7 @@ Arguments:
 - `validator` (Object): containing validate function and select function.
 - `subscriptionKeyFn` (function): function to manipulate the key topic received according to the needs, as well as to block the message received to be published.
 
-Note: `validator` object must be composed by two functions, `validate (data, key, callback)` and `select (receivedRecord, currentRecord, callback)`. `validate` aims to verify if a new record received by pubsub is valid to be stored locally by the node. If it is valid and the node already has a local record stored, `select` is the function provided to be responsible for deciding which record is the best (newer) between the already stored and the received through pubsub. A `validator` example can be found at: TODO (js-ipns)
+Note: `validator` object must be composed by two functions, `validate (record: uint8Array, peerId: PeerId) => boolean` and `select (received: uint8Array, current: uint8Array) => boolean`. `validate` aims to verify if a new record received by pubsub is valid to be stored locally by the node. If it is valid and the node already has a local record stored, `select` is the function provided to be responsible for deciding which record is the best (newer) between the already stored and the received through pubsub. A `validator` example can be found at: TODO (js-ipns)
 
 ```js
 const dsPubsub = new DatastorePubsub(pubsub, datastore, peerId, validator)
