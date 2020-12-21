@@ -38,7 +38,7 @@
     "uint8arrays": "^1.1.0"
   },
   "devDependencies": {
-    "aegir": "^29.1.0",
+    "aegir": "^30.0.1",
     "detect-node": "^2.0.4",
     "it-pair": "^1.0.0",
     "libp2p-gossipsub": "^0.5.0",
