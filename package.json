@@ -33,7 +33,7 @@
   "homepage": "https://github.com/ipfs/js-datastore-pubsub#readme",
   "dependencies": {
     "debug": "^4.2.0",
-    "err-code": "^2.0.3",
+    "err-code": "^3.0.0",
     "interface-datastore": "^2.0.0",
     "uint8arrays": "^2.0.5"
   },
