@@ -1,3 +1,7 @@
+## [0.4.3](https://github.com/ipfs/js-datastore-pubsub/compare/v0.4.2...v0.4.3) (2021-02-23)
+
+
+
 ## [0.4.2](https://github.com/ipfs/js-datastore-pubsub/compare/v0.4.1...v0.4.2) (2020-12-29)
 
 
