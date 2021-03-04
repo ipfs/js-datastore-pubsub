@@ -41,6 +41,7 @@
     "aegir": "^30.0.1",
     "detect-node": "^2.0.4",
     "it-pair": "^1.0.0",
+    "libp2p": "^0.30.9",
     "libp2p-gossipsub": "^0.8.0",
     "libp2p-record": "^0.10.0",
     "p-wait-for": "^3.1.0",
