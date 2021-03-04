@@ -34,7 +34,14 @@ const createMockRegistrar = (registrarRecord) => ({
 // as created by libp2p
 exports.createPubsubNode = async (registrarRecord) => {
   const peerId = await PeerId.create({ bits: 1024 })
-  const pubsub = new Pubsub(peerId, createMockRegistrar(registrarRecord))
+  const libp2p = {
+    peerId,
+    registrar: createMockRegistrar(registrarRecord),
+    connectionManager: {
+      getAll: () => []
+    }
+  }
+  const pubsub = new Pubsub(libp2p)
 
   await pubsub.start()
 
