@@ -2,11 +2,20 @@
 
 const { Key, Adapter } = require('interface-datastore')
 const { encodeBase32, keyToTopic, topicToKey } = require('./utils')
+const uint8ArrayEquals = require('uint8arrays/equals')
 
 const errcode = require('err-code')
 const debug = require('debug')
-const log = debug('datastore-pubsub:publisher')
-log.error = debug('datastore-pubsub:publisher:error')
+const log = Object.assign(debug('datastore-pubsub:publisher'), {
+  error: debug('datastore-pubsub:publisher:error')
+})
+
+/**
+ * @typedef {import('peer-id')} PeerId
+ * @typedef {import('./types').Validator} Validator
+ * @typedef {import('./types').SubscriptionKeyFn} SubscriptionKeyFn
+ * @typedef {import('libp2p-interfaces/src/pubsub/message').Message} PubSubMessage
+ */
 
 // DatastorePubsub is responsible for providing an api for pubsub to be used as a datastore with
 // [TieredDatastore]{@link https://github.com/ipfs/js-datastore-core/blob/master/src/tiered.js}
@@ -16,11 +25,9 @@ class DatastorePubsub extends Adapter {
    *
    * @param {*} pubsub - pubsub implementation.
    * @param {*} datastore - datastore instance.
-   * @param {*} peerId - peer-id instance.
-   * @param {Object} validator - validator functions.
-   * @param {(record: uint8Array, peerId: PeerId) => boolean} validator.validate - function to validate a record.
-   * @param {(received: uint8Array, current: uint8Array) => boolean} validator.select - function to select the newest between two records.
-   * @param {function(key, callback)} subscriptionKeyFn - optional function to manipulate the key topic received before processing it.
+   * @param {PeerId} peerId - peer-id instance.
+   * @param {Validator} validator - validator functions.
+   * @param {SubscriptionKeyFn} subscriptionKeyFn - optional function to manipulate the key topic received before processing it.
    * @memberof DatastorePubsub
    */
   constructor (pubsub, datastore, peerId, validator, subscriptionKeyFn) {
@@ -55,9 +62,9 @@ class DatastorePubsub extends Adapter {
   /**
    * Publishes a value through pubsub.
    *
-   * @param {Uint8Array} key - identifier of the value to be published.
+   * @param {Key} key - identifier of the value to be published.
    * @param {Uint8Array} val - value to be propagated.
-   * @returns {Promise}
+   * @returns {Promise<void>}
    */
   async put (key, val) { // eslint-disable-line require-await
     if (!(key instanceof Uint8Array)) {
@@ -85,8 +92,7 @@ class DatastorePubsub extends Adapter {
   /**
    * Try to subscribe a topic with Pubsub and returns the local value if available.
    *
-   * @param {Uint8Array} key - identifier of the value to be subscribed.
-   * @returns {Promise<Uint8Array>}
+   * @param {Key} key - identifier of the value to be subscribed.
    */
   async get (key) {
     if (!(key instanceof Uint8Array)) {
@@ -130,7 +136,12 @@ class DatastorePubsub extends Adapter {
     return this._pubsub.unsubscribe(stringifiedTopic, this._onMessage)
   }
 
-  // Get record from local datastore
+  /**
+   * Get record from local datastore
+   *
+   * @private
+   * @param {Uint8Array} key
+   */
   async _getLocal (key) {
     // encode key - base32(/ipns/{cid})
     const routingKey = new Key('/' + encodeBase32(key), false)
@@ -161,7 +172,11 @@ class DatastorePubsub extends Adapter {
     return dsVal
   }
 
-  // handles pubsub subscription messages
+  /**
+   * handles pubsub subscription messages
+   *
+   * @param {PubSubMessage} msg
+   */
   async _onMessage (msg) {
     const { data, from, topicIDs } = msg
     let key
@@ -200,7 +215,12 @@ class DatastorePubsub extends Adapter {
     }
   }
 
-  // Store the received record if it is better than the current stored
+  /**
+   * Store the received record if it is better than the current stored
+   *
+   * @param {Uint8Array} key
+   * @param {Uint8Array} data
+   */
   async _storeIfSubscriptionIsBetter (key, data) {
     let isBetter = false
 
@@ -217,12 +237,22 @@ class DatastorePubsub extends Adapter {
     }
   }
 
-  // Validate record according to the received validation function
+  /**
+   * Validate record according to the received validation function
+   *
+   * @param {Uint8Array} value
+   * @param {Uint8Array} peerId
+   */
   async _validateRecord (value, peerId) { // eslint-disable-line require-await
     return this._validator.validate(value, peerId)
   }
 
-  // Select the best record according to the received select function.
+  /**
+   * Select the best record according to the received select function
+   *
+   * @param {Uint8Array} receivedRecord
+   * @param {Uint8Array} currentRecord
+   */
   async _selectRecord (receivedRecord, currentRecord) {
     const res = await this._validator.select(receivedRecord, currentRecord)
 
@@ -230,7 +260,12 @@ class DatastorePubsub extends Adapter {
     return res === 0
   }
 
-  // Verify if the record received through pubsub is valid and better than the one currently stored
+  /**
+   * Verify if the record received through pubsub is valid and better than the one currently stored
+   *
+   * @param {Uint8Array} key
+   * @param {Uint8Array} val
+   */
   async _isBetter (key, val) {
     // validate received record
     let error, valid
@@ -261,7 +296,7 @@ class DatastorePubsub extends Adapter {
     }
 
     // if the same record, do not need to store
-    if (currentRecord.equals(val)) {
+    if (uint8ArrayEquals(currentRecord, val)) {
       return false
     }
 
@@ -269,55 +304,18 @@ class DatastorePubsub extends Adapter {
     return this._selectRecord(val, currentRecord)
   }
 
-  // add record to datastore
+  /**
+   * add record to datastore
+   *
+   * @param {Uint8Array} key
+   * @param {Uint8Array} data
+   */
   async _storeRecord (key, data) {
     // encode key - base32(/ipns/{cid})
     const routingKey = new Key('/' + encodeBase32(key), false)
 
     await this._datastore.put(routingKey, data)
     log(`record for ${keyToTopic(key)} was stored in the datastore`)
-  }
-
-  open () {
-    const errMsg = 'open function was not implemented yet'
-
-    log.error(errMsg)
-    throw errcode(new Error(errMsg), 'ERR_NOT_IMPLEMENTED_YET')
-  }
-
-  has (key) {
-    const errMsg = 'has function was not implemented yet'
-
-    log.error(errMsg)
-    throw errcode(new Error(errMsg), 'ERR_NOT_IMPLEMENTED_YET')
-  }
-
-  delete (key) {
-    const errMsg = 'delete function was not implemented yet'
-
-    log.error(errMsg)
-    throw errcode(new Error(errMsg), 'ERR_NOT_IMPLEMENTED_YET')
-  }
-
-  close () {
-    const errMsg = 'close function was not implemented yet'
-
-    log.error(errMsg)
-    throw errcode(new Error(errMsg), 'ERR_NOT_IMPLEMENTED_YET')
-  }
-
-  batch () {
-    const errMsg = 'batch function was not implemented yet'
-
-    log.error(errMsg)
-    throw errcode(new Error(errMsg), 'ERR_NOT_IMPLEMENTED_YET')
-  }
-
-  query () {
-    const errMsg = 'query function was not implemented yet'
-
-    log.error(errMsg)
-    throw errcode(new Error(errMsg), 'ERR_NOT_IMPLEMENTED_YET')
   }
 }
 
