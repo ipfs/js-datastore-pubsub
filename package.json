@@ -7,7 +7,6 @@
   "types": "dist/src/index.d.ts",
   "scripts": {
     "prepare": "aegir build --no-bundle",
-    "prepublishOnly": "aegir build",
     "lint": "aegir lint",
     "release": "aegir release --target node",
     "release-minor": "aegir release --target node --type minor",
@@ -26,6 +25,10 @@
     "ipfs",
     "datastore",
     "pubsub"
+  ],
+  "files": [
+    "dist",
+    "src"
   ],
   "author": "Vasco Santos <vasco.santos@moxy.studio>",
   "license": "MIT",
