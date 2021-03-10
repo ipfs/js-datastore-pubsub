@@ -1,39 +1,59 @@
 'use strict'
 
 const PeerId = require('peer-id')
+// @ts-ignore
 const DuplexPair = require('it-pair/duplex')
 
-const Pubsub = require('libp2p-gossipsub')
-const { multicodec } = require('libp2p-gossipsub')
+const Gossipsub = require('libp2p-gossipsub')
+const { multicodec } = Gossipsub
 
 const pWaitFor = require('p-wait-for')
 
-const createMockRegistrar = (registrarRecord) => ({
-  handle: (multicodecs, handler) => {
-    const rec = registrarRecord[multicodecs[0]] || {}
+/**
+ * @typedef {import('libp2p-interfaces/src/pubsub')} Pubsub
+ */
 
-    registrarRecord[multicodecs[0]] = {
-      ...rec,
-      handler
-    }
-  },
-  register: ({ multicodecs, _onConnect, _onDisconnect }) => {
-    const rec = registrarRecord[multicodecs[0]] || {}
+/**
+ * @param {Record<string, any>} registrarRecord
+ */
+const createMockRegistrar = (registrarRecord) => {
+  return {
+    /** @type {import('libp2p')["handle"]} */
+    handle: (multicodecs, handler) => {
+      const rec = registrarRecord[multicodecs[0]] || {}
 
-    registrarRecord[multicodecs[0]] = {
-      ...rec,
-      onConnect: _onConnect,
-      onDisconnect: _onDisconnect
-    }
+      registrarRecord[multicodecs[0]] = {
+        ...rec,
+        handler
+      }
+    },
+    /**
+     *
+     * @param {import('libp2p-interfaces/src/topology') & { multicodecs: string[] }} arg
+     */
+    register: ({ multicodecs, _onConnect, _onDisconnect }) => {
+      const rec = registrarRecord[multicodecs[0]] || {}
 
-    return multicodecs[0]
-  },
-  unregister: () => {}
-})
+      registrarRecord[multicodecs[0]] = {
+        ...rec,
+        onConnect: _onConnect,
+        onDisconnect: _onDisconnect
+      }
 
-// as created by libp2p
+      return multicodecs[0]
+    },
+    unregister: () => true
+  }
+}
+
+/**
+ * As created by libp2p
+ *
+ * @param {object} registrarRecord
+ */
 exports.createPubsubNode = async (registrarRecord) => {
   const peerId = await PeerId.create({ bits: 1024 })
+
   const libp2p = {
     peerId,
     registrar: createMockRegistrar(registrarRecord),
@@ -41,31 +61,13 @@ exports.createPubsubNode = async (registrarRecord) => {
       getAll: () => []
     }
   }
-  const pubsub = new Pubsub(libp2p)
+
+  // @ts-ignore just enough libp2p
+  const pubsub = new Gossipsub(libp2p)
 
   await pubsub.start()
 
-  return {
-    peerId: pubsub.peerId,
-    subscribe: (topic, handler) => {
-      pubsub.subscribe(topic)
-
-      pubsub.on(topic, handler)
-    },
-    unsubscribe: (topic, handler) => {
-      if (!handler) {
-        pubsub.removeAllListeners(topic)
-      } else {
-        pubsub.removeListener(topic, handler)
-      }
-
-      pubsub.unsubscribe(topic)
-    },
-    publish: (topic, data) => pubsub.publish(topic, data),
-    getTopics: () => pubsub.getTopics(),
-    getSubscribers: (topic) => pubsub.getSubscribers(topic),
-    stop: () => pubsub.stop()
-  }
+  return pubsub
 }
 
 const ConnectionPair = () => {
@@ -83,6 +85,14 @@ const ConnectionPair = () => {
   ]
 }
 
+/**
+ * @typedef {object} Connectable
+ * @property {Pubsub} router
+ * @property {any} registrar
+ *
+ * @param {Connectable} pubsubA
+ * @param {Connectable} pubsubB
+ */
 exports.connectPubsubNodes = async (pubsubA, pubsubB) => {
   const onConnectA = pubsubA.registrar[multicodec].onConnect
   const onConnectB = pubsubB.registrar[multicodec].onConnect
@@ -111,10 +121,20 @@ exports.connectPubsubNodes = async (pubsubA, pubsubB) => {
   })
 }
 
-// Wait for a condition to become true.  When its true, callback is called.
+/**
+ * Wait for a condition to become true.  When its true, callback is called.
+ *
+ * @param {() => boolean} predicate
+ */
 exports.waitFor = predicate => pWaitFor(predicate, { interval: 1000, timeout: 10000 })
 
-// Wait until a peer subscribes a topic
+/**
+ * Wait until a peer subscribes a topic
+ *
+ * @param {string} topic
+ * @param {PeerId} peer
+ * @param {Pubsub} node
+ */
 exports.waitForPeerToSubscribe = (topic, peer, node) => {
   return pWaitFor(async () => {
     const peers = await node.getSubscribers(topic)

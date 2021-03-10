@@ -23,11 +23,11 @@ class DatastorePubsub extends Adapter {
   /**
    * Creates an instance of DatastorePubsub.
    *
-   * @param {*} pubsub - pubsub implementation.
-   * @param {*} datastore - datastore instance.
-   * @param {PeerId} peerId - peer-id instance.
-   * @param {Validator} validator - validator functions.
-   * @param {SubscriptionKeyFn} subscriptionKeyFn - optional function to manipulate the key topic received before processing it.
+   * @param {import('libp2p-interfaces/src/pubsub')} pubsub - pubsub implementation
+   * @param {import('interface-datastore').Datastore} datastore - datastore instance
+   * @param {PeerId} peerId - peer-id instance
+   * @param {Validator} validator - validator functions
+   * @param {SubscriptionKeyFn} [subscriptionKeyFn] - optional function to manipulate the key topic received before processing it
    * @memberof DatastorePubsub
    */
   constructor (pubsub, datastore, peerId, validator, subscriptionKeyFn) {
@@ -62,10 +62,11 @@ class DatastorePubsub extends Adapter {
   /**
    * Publishes a value through pubsub.
    *
-   * @param {Key} key - identifier of the value to be published.
+   * @param {Uint8Array} key - identifier of the value to be published.
    * @param {Uint8Array} val - value to be propagated.
    * @returns {Promise<void>}
    */
+  // @ts-ignore Datastores take keys as Keys, this one takes Uint8Arrays
   async put (key, val) { // eslint-disable-line require-await
     if (!(key instanceof Uint8Array)) {
       const errMsg = 'datastore key does not have a valid format'
@@ -92,8 +93,9 @@ class DatastorePubsub extends Adapter {
   /**
    * Try to subscribe a topic with Pubsub and returns the local value if available.
    *
-   * @param {Key} key - identifier of the value to be subscribed.
+   * @param {Uint8Array} key - identifier of the value to be subscribed.
    */
+  // @ts-ignore Datastores take keys as Keys, this one takes Uint8Arrays
   async get (key) {
     if (!(key instanceof Uint8Array)) {
       const errMsg = 'datastore key does not have a valid format'
@@ -112,7 +114,8 @@ class DatastorePubsub extends Adapter {
 
     // subscribe
     try {
-      await this._pubsub.subscribe(stringifiedTopic, this._onMessage)
+      this._pubsub.on(stringifiedTopic, this._onMessage)
+      await this._pubsub.subscribe(stringifiedTopic)
     } catch (err) {
       const errMsg = `cannot subscribe topic ${stringifiedTopic}`
 
@@ -133,7 +136,8 @@ class DatastorePubsub extends Adapter {
   unsubscribe (key) {
     const stringifiedTopic = keyToTopic(key)
 
-    return this._pubsub.unsubscribe(stringifiedTopic, this._onMessage)
+    this._pubsub.removeListener(stringifiedTopic, this._onMessage)
+    return this._pubsub.unsubscribe(stringifiedTopic)
   }
 
   /**
