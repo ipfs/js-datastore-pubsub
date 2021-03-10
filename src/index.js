@@ -64,10 +64,9 @@ class DatastorePubsub extends Adapter {
    *
    * @param {Uint8Array} key - identifier of the value to be published.
    * @param {Uint8Array} val - value to be propagated.
-   * @returns {Promise<void>}
    */
   // @ts-ignore Datastores take keys as Keys, this one takes Uint8Arrays
-  async put (key, val) { // eslint-disable-line require-await
+  async put (key, val) {
     if (!(key instanceof Uint8Array)) {
       const errMsg = 'datastore key does not have a valid format'
 
@@ -87,7 +86,7 @@ class DatastorePubsub extends Adapter {
     log(`publish value for topic ${stringifiedTopic}`)
 
     // Publish record to pubsub
-    return this._pubsub.publish(stringifiedTopic, val)
+    await this._pubsub.publish(stringifiedTopic, val)
   }
 
   /**
