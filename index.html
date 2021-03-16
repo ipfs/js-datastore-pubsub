@@ -1,460 +1,226 @@
 <!doctype html>
-<html lang="en">
+<html class="default no-js">
 <head>
-  <meta charset='utf-8'>
-  <title>datastore-pubsub 0.4.1 | Documentation</title>
-  <meta name='description' content='Responsible for providing an interface-datastore compliant api to pubsub'>
-  <meta name='viewport' content='width=device-width,initial-scale=1'>
-  <link href='assets/bass.css' rel='stylesheet'>
-  <link href='assets/style.css' rel='stylesheet'>
-  <link href='assets/github.css' rel='stylesheet'>
-  <link href='assets/split.css' rel='stylesheet'>
+	<meta charset="utf-8">
+	<meta http-equiv="X-UA-Compatible" content="IE=edge">
+	<title>datastore-pubsub - v0.5.0</title>
+	<meta name="description" content="Documentation for datastore-pubsub - v0.5.0">
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<link rel="stylesheet" href="assets/css/main.css">
+	<script async src="assets/js/search.js" id="search-script"></script>
 </head>
-<body class='documentation m0'>
-    <div class='flex'>
-      <div id='split-left' class='overflow-auto fs0 height-viewport-100'>
-        <div class='py1 px2'>
-          <h3 class='mb0 no-anchor'>datastore-pubsub</h3>
-          <div class='mb1'><code>0.4.1</code></div>
-          <input
-            placeholder='Filter'
-            id='filter-input'
-            class='col12 block input'
-            spellcheck='false'
-            autocapitalize='off'
-            autocorrect='off'
-            type='text' />
-          <div id='toc'>
-            <ul class='list-reset h5 py1-ul'>
-              
-                
-                <li><a
-                  href='#put'
-                  class="">
-                  put
-                  
-                </a>
-                
-                </li>
-              
-                
-                <li><a
-                  href='#get'
-                  class="">
-                  get
-                  
-                </a>
-                
-                </li>
-              
-                
-                <li><a
-                  href='#unsubscribe'
-                  class="">
-                  unsubscribe
-                  
-                </a>
-                
-                </li>
-              
-                
-                <li><a
-                  href='#constructor'
-                  class="">
-                  constructor
-                  
-                </a>
-                
-                </li>
-              
-            </ul>
-          </div>
-          <div class='mt1 h6 quiet'>
-            <a href='https://documentation.js.org/reading-documentation.html'>Need help reading this?</a>
-          </div>
-        </div>
-      </div>
-      <div id='split-right' class='relative overflow-auto height-viewport-100'>
-        
-          
-          <section class='p2 mb2 clearfix bg-white minishadow'>
-
-  
-  <div class='clearfix'>
-    
-    <h3 class='fl m0' id='put'>
-      put
-    </h3>
-    
-    
-      <a class='fr fill-darken0 round round pad1x quiet h5' href='https://github.com/ipfs/js-datastore-pubsub/blob/b5ac2329d3b51731b4cb3b76a7cbacfb35fac38d/src/index.js#L60-L81'>
-      <span>src/index.js</span>
-      </a>
-    
-  </div>
-  
-
-  <p>Publishes a value through pubsub.</p>
-
-    <div class='pre p1 fill-light mt0'>put(key: <a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Uint8Array">Uint8Array</a>, val: <a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Uint8Array">Uint8Array</a>): <a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Promise">Promise</a></div>
-  
-  
-
-  
-  
-  
-  
-  
-  
-
-  
-    <div class='py1 quiet mt1 prose-big'>Parameters</div>
-    <div class='prose'>
-      
-        <div class='space-bottom0'>
-          <div>
-            <span class='code bold'>key</span> <code class='quiet'>(<a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Uint8Array">Uint8Array</a>)</code>
-	    identifier of the value to be published.
-
-          </div>
-          
-        </div>
-      
-        <div class='space-bottom0'>
-          <div>
-            <span class='code bold'>val</span> <code class='quiet'>(<a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Uint8Array">Uint8Array</a>)</code>
-	    value to be propagated.
-
-          </div>
-          
-        </div>
-      
-    </div>
-  
-
-  
-
-  
-    
-      <div class='py1 quiet mt1 prose-big'>Returns</div>
-      <code><a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Promise">Promise</a></code>:
-        
-
-      
-    
-  
-
-  
-
-  
-
-  
-
-  
-
-  
-
-  
-
-  
-</section>
-
-          
-        
-          
-          <section class='p2 mb2 clearfix bg-white minishadow'>
-
-  
-  <div class='clearfix'>
-    
-    <h3 class='fl m0' id='get'>
-      get
-    </h3>
-    
-    
-      <a class='fr fill-darken0 round round pad1x quiet h5' href='https://github.com/ipfs/js-datastore-pubsub/blob/b5ac2329d3b51731b4cb3b76a7cbacfb35fac38d/src/index.js#L88-L116'>
-      <span>src/index.js</span>
-      </a>
-    
-  </div>
-  
-
-  <p>Try to subscribe a topic with Pubsub and returns the local value if available.</p>
-
-    <div class='pre p1 fill-light mt0'>get(key: <a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Uint8Array">Uint8Array</a>): <a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Promise">Promise</a>&#x3C;<a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Uint8Array">Uint8Array</a>></div>
-  
-  
-
-  
-  
-  
-  
-  
-  
-
-  
-    <div class='py1 quiet mt1 prose-big'>Parameters</div>
-    <div class='prose'>
-      
-        <div class='space-bottom0'>
-          <div>
-            <span class='code bold'>key</span> <code class='quiet'>(<a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Uint8Array">Uint8Array</a>)</code>
-	    identifier of the value to be subscribed.
-
-          </div>
-          
-        </div>
-      
-    </div>
-  
-
-  
-
-  
-    
-      <div class='py1 quiet mt1 prose-big'>Returns</div>
-      <code><a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Promise">Promise</a>&#x3C;<a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Uint8Array">Uint8Array</a>></code>:
-        
-
-      
-    
-  
-
-  
-
-  
-
-  
-
-  
-
-  
-
-  
-
-  
-</section>
-
-          
-        
-          
-          <section class='p2 mb2 clearfix bg-white minishadow'>
-
-  
-  <div class='clearfix'>
-    
-    <h3 class='fl m0' id='unsubscribe'>
-      unsubscribe
-    </h3>
-    
-    
-      <a class='fr fill-darken0 round round pad1x quiet h5' href='https://github.com/ipfs/js-datastore-pubsub/blob/b5ac2329d3b51731b4cb3b76a7cbacfb35fac38d/src/index.js#L123-L127'>
-      <span>src/index.js</span>
-      </a>
-    
-  </div>
-  
-
-  <p>Unsubscribe topic.</p>
-
-    <div class='pre p1 fill-light mt0'>unsubscribe(key: <a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Uint8Array">Uint8Array</a>): void</div>
-  
-  
-
-  
-  
-  
-  
-  
-  
-
-  
-    <div class='py1 quiet mt1 prose-big'>Parameters</div>
-    <div class='prose'>
-      
-        <div class='space-bottom0'>
-          <div>
-            <span class='code bold'>key</span> <code class='quiet'>(<a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Uint8Array">Uint8Array</a>)</code>
-	    identifier of the value to unsubscribe.
-
-          </div>
-          
-        </div>
-      
-    </div>
-  
-
-  
-
-  
-    
-      <div class='py1 quiet mt1 prose-big'>Returns</div>
-      <code>void</code>:
-        
-
-      
-    
-  
-
-  
-
-  
-
-  
-
-  
-
-  
-
-  
-
-  
-</section>
-
-          
-        
-          
-          <section class='p2 mb2 clearfix bg-white minishadow'>
-
-  
-  <div class='clearfix'>
-    
-    <h3 class='fl m0' id='constructor'>
-      constructor
-    </h3>
-    
-    
-      <a class='fr fill-darken0 round round pad1x quiet h5' href='https://github.com/ipfs/js-datastore-pubsub/blob/b5ac2329d3b51731b4cb3b76a7cbacfb35fac38d/src/index.js#L25-L52'>
-      <span>src/index.js</span>
-      </a>
-    
-  </div>
-  
-
-  <p>Creates an instance of DatastorePubsub.</p>
-
-    <div class='pre p1 fill-light mt0'>constructor(pubsub: any, datastore: any, peerId: any, validator: <a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Object">Object</a>, subscriptionKeyFn: function (key, callback))</div>
-  
-  
-
-  
-  
-  
-  
-  
-  
-
-  
-    <div class='py1 quiet mt1 prose-big'>Parameters</div>
-    <div class='prose'>
-      
-        <div class='space-bottom0'>
-          <div>
-            <span class='code bold'>pubsub</span> <code class='quiet'>(any)</code>
-	    pubsub implementation.
-
-          </div>
-          
-        </div>
-      
-        <div class='space-bottom0'>
-          <div>
-            <span class='code bold'>datastore</span> <code class='quiet'>(any)</code>
-	    datastore instance.
-
-          </div>
-          
-        </div>
-      
-        <div class='space-bottom0'>
-          <div>
-            <span class='code bold'>peerId</span> <code class='quiet'>(any)</code>
-	    peer-id instance.
-
-          </div>
-          
-        </div>
-      
-        <div class='space-bottom0'>
-          <div>
-            <span class='code bold'>validator</span> <code class='quiet'>(<a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Object">Object</a>)</code>
-	    validator functions.
-
-          </div>
-          
-          <table class='mt1 mb2 fixed-table h5 col-12'>
-            <colgroup>
-              <col width='30%' />
-              <col width='70%' />
-            </colgroup>
-            <thead>
-              <tr class='bold fill-light'>
-                <th>Name</th>
-                <th>Description</th>
-              </tr>
-            </thead>
-            <tbody class='mt1'>
-              
-                <tr>
-  <td class='break-word'><span class='code bold'>validator.validate</span> <code class='quiet'>function (record, peerId, callback)</code>
-  </td>
-  <td class='break-word'><span>function to validate a record.
-</span></td>
-</tr>
-
-
-              
-                <tr>
-  <td class='break-word'><span class='code bold'>validator.select</span> <code class='quiet'>function (received, current, callback)</code>
-  </td>
-  <td class='break-word'><span>function to select the newest between two records.
-</span></td>
-</tr>
-
-
-              
-            </tbody>
-          </table>
-          
-        </div>
-      
-        <div class='space-bottom0'>
-          <div>
-            <span class='code bold'>subscriptionKeyFn</span> <code class='quiet'>(function (key, callback))</code>
-	    optional function to manipulate the key topic received before processing it.
-
-          </div>
-          
-        </div>
-      
-    </div>
-  
-
-  
-
-  
-
-  
-
-  
-
-  
-
-  
-
-  
-
-  
-
-  
-</section>
-
-          
-        
-      </div>
-    </div>
-  <script src='assets/anchor.js'></script>
-  <script src='assets/split.js'></script>
-  <script src='assets/site.js'></script>
+<body>
+<header>
+	<div class="tsd-page-toolbar">
+		<div class="container">
+			<div class="table-wrap">
+				<div class="table-cell" id="tsd-search" data-index="assets/js/search.json" data-base=".">
+					<div class="field">
+						<label for="tsd-search-field" class="tsd-widget search no-caption">Search</label>
+						<input id="tsd-search-field" type="text" />
+					</div>
+					<ul class="results">
+						<li class="state loading">Preparing search index...</li>
+						<li class="state failure">The search index is not available</li>
+					</ul>
+					<a href="index.html" class="title">datastore-pubsub - v0.5.0</a>
+				</div>
+				<div class="table-cell" id="tsd-widgets">
+					<div id="tsd-filter">
+						<a href="#" class="tsd-widget options no-caption" data-toggle="options">Options</a>
+						<div class="tsd-filter-group">
+							<div class="tsd-select" id="tsd-filter-visibility">
+								<span class="tsd-select-label">All</span>
+								<ul class="tsd-select-list">
+									<li data-value="public">Public</li>
+									<li data-value="protected">Public/Protected</li>
+									<li data-value="private" class="selected">All</li>
+								</ul>
+							</div>
+							<input type="checkbox" id="tsd-filter-inherited" checked />
+							<label class="tsd-widget" for="tsd-filter-inherited">Inherited</label>
+							<input type="checkbox" id="tsd-filter-externals" checked />
+							<label class="tsd-widget" for="tsd-filter-externals">Externals</label>
+						</div>
+					</div>
+					<a href="#" class="tsd-widget menu no-caption" data-toggle="menu">Menu</a>
+				</div>
+			</div>
+		</div>
+	</div>
+	<div class="tsd-page-title">
+		<div class="container">
+			<h1>datastore-pubsub - v0.5.0</h1>
+		</div>
+	</div>
+</header>
+<div class="container container-main">
+	<div class="row">
+		<div class="col-8 col-content">
+			<div class="tsd-panel tsd-typography">
+				<a href="#datastore-pubsub" id="datastore-pubsub" style="color: inherit; text-decoration: none;">
+					<h1>datastore-pubsub</h1>
+				</a>
+				<p><a href="http://protocol.ai"><img src="https://img.shields.io/badge/made%20by-Protocol%20Labs-blue.svg?style=flat-square" alt=""></a>
+					<a href="http://ipfs.io/"><img src="https://img.shields.io/badge/project-IPFS-blue.svg?style=flat-square" alt=""></a>
+					<a href="http://webchat.freenode.net/?channels=%23ipfs"><img src="https://img.shields.io/badge/freenode-%23ipfs-blue.svg?style=flat-square" alt=""></a>
+					<a href="https://codecov.io/gh/ipfs/js-datastore-pubsub"><img src="https://img.shields.io/codecov/c/github/ipfs/js-datastore-pubsub.svg?style=flat-square" alt=""></a>
+					<a href="https://travis-ci.com/ipfs/js-datastore-pubsub"><img src="https://img.shields.io/travis/ipfs/js-datastore-pubsub.svg?style=flat-square" alt=""></a>
+					<a href="https://david-dm.org/ipfs/js-datastore-pubsub"><img src="https://david-dm.org/ipfs/js-datastore-pubsub.svg?style=flat-square" alt="Dependency Status"></a>
+					<a href="https://github.com/RichardLitt/standard-readme"><img src="https://img.shields.io/badge/standard--readme-OK-green.svg?style=flat-square" alt="standard-readme"></a>
+				<a href="https://github.com/feross/standard"><img src="https://img.shields.io/badge/code%20style-standard-brightgreen.svg?style=flat-square" alt="js-standard-style"></a></p>
+				<blockquote>
+					<p>provides an implementation of an api for pubsub to be used as a datastore with TieredDatastore</p>
+				</blockquote>
+				<a href="#lead-maintainer" id="lead-maintainer" style="color: inherit; text-decoration: none;">
+					<h2>Lead Maintainer</h2>
+				</a>
+				<p><a href="https://github.com/vasco-santos">Vasco Santos</a>.</p>
+				<a href="#table-of-contents" id="table-of-contents" style="color: inherit; text-decoration: none;">
+					<h2>Table of Contents</h2>
+				</a>
+				<ul>
+					<li><a href="#lead-maintainer">Lead Maintainer</a></li>
+					<li><a href="#table-of-contents">Table of Contents</a><ul>
+							<li><a href="#install">Install</a></li>
+						</ul>
+					</li>
+					<li><a href="#usage">Usage</a></li>
+					<li><a href="#api">API</a><ul>
+							<li><a href="#setup">Setup</a></li>
+							<li><a href="#get">Get</a></li>
+							<li><a href="#put">Put</a></li>
+							<li><a href="#unsubscribe">Unsubscribe</a></li>
+						</ul>
+					</li>
+					<li><a href="#contribute">Contribute</a></li>
+					<li><a href="#license">License</a></li>
+				</ul>
+				<a href="#install" id="install" style="color: inherit; text-decoration: none;">
+					<h3>Install</h3>
+				</a>
+				<blockquote>
+					<p>npm install datastore-pubsub</p>
+				</blockquote>
+				<a href="#usage" id="usage" style="color: inherit; text-decoration: none;">
+					<h2>Usage</h2>
+				</a>
+				<pre><code class="language-js"><span style="color: #0000FF">const</span><span style="color: #000000"> </span><span style="color: #0070C1">DatastorePubsub</span><span style="color: #000000"> = </span><span style="color: #795E26">require</span><span style="color: #000000">(</span><span style="color: #A31515">&#039;datastore-pubsub&#039;</span><span style="color: #000000">)</span>
+
+<span style="color: #0000FF">const</span><span style="color: #000000"> </span><span style="color: #0070C1">dsPubsub</span><span style="color: #000000"> = </span><span style="color: #0000FF">new</span><span style="color: #000000"> </span><span style="color: #795E26">DatastorePubsub</span><span style="color: #000000">(</span><span style="color: #001080">pubsub</span><span style="color: #000000">, </span><span style="color: #001080">datastore</span><span style="color: #000000">, </span><span style="color: #001080">peerId</span><span style="color: #000000">, </span><span style="color: #001080">validator</span><span style="color: #000000">)</span>
+</code></pre>
+				<a href="#api" id="api" style="color: inherit; text-decoration: none;">
+					<h2>API</h2>
+				</a>
+				<a href="#setup" id="setup" style="color: inherit; text-decoration: none;">
+					<h4>Setup</h4>
+				</a>
+				<pre><code class="language-js"><span style="color: #0000FF">new</span><span style="color: #000000"> </span><span style="color: #795E26">DatastorePubsub</span><span style="color: #000000">(</span><span style="color: #001080">pubsub</span><span style="color: #000000">, </span><span style="color: #001080">datastore</span><span style="color: #000000">, </span><span style="color: #001080">peerId</span><span style="color: #000000">, </span><span style="color: #001080">validator</span><span style="color: #000000">, </span><span style="color: #001080">subscriptionKeyFn</span><span style="color: #000000">)</span>
+</code></pre>
+				<p>Creates a DatastorePubsub instance.</p>
+				<p>Arguments:</p>
+				<ul>
+					<li><code>pubsub</code> (Object): implementation of a pubsub (must have publish and subscribe functions), such as <a href="https://github.com/libp2p/js-libp2p/blob/master/src/pubsub.js">libp2p/pubsub</a>.</li>
+					<li><code>datastore</code> (Object): datastore compliant with <a href="https://github.com/ipfs/interface-datastore">interface-datastore</a>, such as <a href="https://github.com/ipfs/js-datastore-fs">datastore-fs</a>.</li>
+					<li><code>peerId</code> (<code>PeerId</code> <a href="https://github.com/libp2p/js-peer-id">Instance</a>): peer identifier object.</li>
+					<li><code>validator</code> (Object): containing validate function and select function.</li>
+					<li><code>subscriptionKeyFn</code> (function): function to manipulate the key topic received according to the needs, as well as to block the message received to be published.</li>
+				</ul>
+				<p>Note: <code>validator</code> object must be composed by two functions, <code>validate (record: uint8Array, peerId: PeerId) =&gt; boolean</code> and <code>select (received: uint8Array, current: uint8Array) =&gt; boolean</code>. <code>validate</code> aims to verify if a new record received by pubsub is valid to be stored locally by the node. If it is valid and the node already has a local record stored, <code>select</code> is the function provided to be responsible for deciding which record is the best (newer) between the already stored and the received through pubsub. A <code>validator</code> example can be found at: TODO (js-ipns)</p>
+				<pre><code class="language-js"><span style="color: #0000FF">const</span><span style="color: #000000"> </span><span style="color: #0070C1">dsPubsub</span><span style="color: #000000"> = </span><span style="color: #0000FF">new</span><span style="color: #000000"> </span><span style="color: #795E26">DatastorePubsub</span><span style="color: #000000">(</span><span style="color: #001080">pubsub</span><span style="color: #000000">, </span><span style="color: #001080">datastore</span><span style="color: #000000">, </span><span style="color: #001080">peerId</span><span style="color: #000000">, </span><span style="color: #001080">validator</span><span style="color: #000000">)</span>
+</code></pre>
+				<a href="#get" id="get" style="color: inherit; text-decoration: none;">
+					<h4>Get</h4>
+				</a>
+				<pre><code class="language-js"><span style="color: #0000FF">const</span><span style="color: #000000"> </span><span style="color: #0070C1">buf</span><span style="color: #000000"> = </span><span style="color: #AF00DB">await</span><span style="color: #000000"> </span><span style="color: #001080">dsPubsub</span><span style="color: #000000">.</span><span style="color: #795E26">get</span><span style="color: #000000">(</span><span style="color: #001080">key</span><span style="color: #000000">)</span>
+</code></pre>
+				<p>Try to subscribe a topic with Pubsub and receive the current local value if available.</p>
+				<p>Arguments:</p>
+				<ul>
+					<li><code>key</code> (Uint8Array): a key representing a unique identifier of the object to subscribe.</li>
+				</ul>
+				<p>Returns <code>Promise&lt;Uint8Array&gt;</code> containing the most recent known record stored.</p>
+				<a href="#put" id="put" style="color: inherit; text-decoration: none;">
+					<h4>Put</h4>
+				</a>
+				<pre><code class="language-js"><span style="color: #AF00DB">await</span><span style="color: #000000"> </span><span style="color: #001080">dsPubsub</span><span style="color: #000000">.</span><span style="color: #795E26">put</span><span style="color: #000000">(</span><span style="color: #001080">key</span><span style="color: #000000">, </span><span style="color: #001080">val</span><span style="color: #000000">)</span>
+</code></pre>
+				<p>Publishes a value through pubsub.</p>
+				<p>Arguments:</p>
+				<ul>
+					<li><code>key</code> (Uint8Array): a key representing a unique identifier of the object to publish.</li>
+					<li><code>val</code> (Uint8Array): value to be propagated.</li>
+				</ul>
+				<p>Returns <code>Promise&lt;void&gt;</code></p>
+				<a href="#unsubscribe" id="unsubscribe" style="color: inherit; text-decoration: none;">
+					<h4>Unsubscribe</h4>
+				</a>
+				<pre><code class="language-js"><span style="color: #AF00DB">await</span><span style="color: #000000"> </span><span style="color: #001080">dsPubsub</span><span style="color: #000000">.</span><span style="color: #795E26">unsubscribe</span><span style="color: #000000">(</span><span style="color: #001080">key</span><span style="color: #000000">)</span>
+</code></pre>
+				<p>Unsubscribe a previously subscribe value.</p>
+				<p>Arguments:</p>
+				<ul>
+					<li><code>key</code> (Uint8Array): a key representing a unique identifier of the object to publish.</li>
+				</ul>
+				<p>Returns <code>Promise&lt;void&gt;</code></p>
+				<a href="#contribute" id="contribute" style="color: inherit; text-decoration: none;">
+					<h2>Contribute</h2>
+				</a>
+				<p>Feel free to join in. All welcome. Open an <a href="https://github.com/ipfs/js-ipns/issues">issue</a>!</p>
+				<p>This repository falls under the IPFS <a href="https://github.com/ipfs/community/blob/master/code-of-conduct.md">Code of Conduct</a>.</p>
+				<p><a href="https://github.com/ipfs/community/blob/master/CONTRIBUTING.md"><img src="https://cdn.rawgit.com/jbenet/contribute-ipfs-gif/master/img/contribute.gif" alt=""></a></p>
+				<a href="#license" id="license" style="color: inherit; text-decoration: none;">
+					<h2>License</h2>
+				</a>
+				<p>Copyright (c) Protocol Labs, Inc. under the <strong>MIT License</strong>. See <a href="./LICENSE">LICENSE file</a> for details.</p>
+			</div>
+		</div>
+		<div class="col-4 col-menu menu-sticky-wrap menu-highlight">
+			<nav class="tsd-navigation primary">
+				<ul>
+					<li class=" ">
+						<a href="modules.html">Exports</a>
+					</li>
+				</ul>
+			</nav>
+			<nav class="tsd-navigation secondary menu-sticky">
+				<ul class="before-current">
+					<li class=" tsd-kind-class">
+						<a href="classes/datastorepubsub.html" class="tsd-kind-icon">Datastore<wbr>Pubsub</a>
+					</li>
+					<li class=" tsd-kind-type-alias tsd-has-type-parameter">
+						<a href="modules.html#peerid" class="tsd-kind-icon">Peer<wbr>Id</a>
+					</li>
+					<li class=" tsd-kind-type-alias tsd-has-type-parameter">
+						<a href="modules.html#pubsubmessage" class="tsd-kind-icon">Pub<wbr>Sub<wbr>Message</a>
+					</li>
+					<li class=" tsd-kind-type-alias tsd-has-type-parameter">
+						<a href="modules.html#subscriptionkeyfn" class="tsd-kind-icon">Subscription<wbr>Key<wbr>Fn</a>
+					</li>
+					<li class=" tsd-kind-type-alias tsd-has-type-parameter">
+						<a href="modules.html#validator" class="tsd-kind-icon">Validator</a>
+					</li>
+				</ul>
+			</nav>
+		</div>
+	</div>
+</div>
+<footer>
+	<div class="container">
+		<h2>Legend</h2>
+		<div class="tsd-legend-group">
+			<ul class="tsd-legend">
+				<li class="tsd-kind-constructor tsd-parent-kind-class"><span class="tsd-kind-icon">Constructor</span></li>
+				<li class="tsd-kind-property tsd-parent-kind-class"><span class="tsd-kind-icon">Property</span></li>
+				<li class="tsd-kind-method tsd-parent-kind-class"><span class="tsd-kind-icon">Method</span></li>
+			</ul>
+			<ul class="tsd-legend">
+				<li class="tsd-kind-method tsd-parent-kind-class tsd-is-private"><span class="tsd-kind-icon">Private method</span></li>
+			</ul>
+		</div>
+	</div>
+</footer>
+<div class="overlay"></div>
+<script src="assets/js/main.js"></script>
 </body>
 </html>
