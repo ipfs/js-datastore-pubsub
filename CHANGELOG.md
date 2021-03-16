@@ -1,3 +1,12 @@
+# [0.5.0](https://github.com/ipfs/js-datastore-pubsub/compare/v0.4.3...v0.5.0) (2021-03-16)
+
+
+### Bug Fixes
+
+* pubsub constructor breaking change ([6cb2770](https://github.com/ipfs/js-datastore-pubsub/commit/6cb2770375f0b16d390315d12b95397ac4849fef))
+
+
+
 ## [0.4.3](https://github.com/ipfs/js-datastore-pubsub/compare/v0.4.2...v0.4.3) (2021-02-23)
 
 
