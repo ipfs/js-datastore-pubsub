@@ -4,8 +4,9 @@
   "description": "Responsible for providing an interface-datastore compliant api to pubsub",
   "leadMaintainer": "Vasco Santos <vasco.santos@moxy.studio>",
   "main": "src/index.js",
+  "types": "dist/src/index.d.ts",
   "scripts": {
-    "build": "aegir build",
+    "prepare": "aegir build --no-bundle",
     "lint": "aegir lint",
     "release": "aegir release --target node",
     "release-minor": "aegir release --target node --type minor",
@@ -25,6 +26,10 @@
     "datastore",
     "pubsub"
   ],
+  "files": [
+    "dist",
+    "src"
+  ],
   "author": "Vasco Santos <vasco.santos@moxy.studio>",
   "license": "MIT",
   "bugs": {
@@ -38,11 +43,16 @@
     "uint8arrays": "^2.0.5"
   },
   "devDependencies": {
+    "@types/detect-node": "^2.0.0",
+    "@types/mocha": "^8.2.1",
+    "@types/sinon": "^9.0.10",
     "aegir": "^31.0.3",
     "detect-node": "^2.0.4",
+    "ipfs-core-types": "^0.3.0",
     "it-pair": "^1.0.0",
     "libp2p": "^0.30.9",
     "libp2p-gossipsub": "^0.8.0",
+    "libp2p-interfaces": "^0.8.3",
     "libp2p-record": "^0.10.0",
     "p-wait-for": "^3.1.0",
     "peer-id": "^0.14.2",
