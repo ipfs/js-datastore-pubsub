@@ -27,7 +27,7 @@ class DatastorePubsub extends Adapter {
    * @param {import('interface-datastore').Datastore} datastore - datastore instance
    * @param {PeerId} peerId - peer-id instance
    * @param {Validator} validator - validator functions
-   * @param {SubscriptionKeyFn} [subscriptionKeyFn] - optional function to manipulate the key topic received before processing it
+   * @param {SubscriptionKeyFn} [subscriptionKeyFn] - function to manipulate the key topic received before processing it
    * @memberof DatastorePubsub
    */
   constructor (pubsub, datastore, peerId, validator, subscriptionKeyFn) {
