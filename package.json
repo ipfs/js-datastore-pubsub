@@ -39,7 +39,7 @@
   "dependencies": {
     "debug": "^4.2.0",
     "err-code": "^3.0.1",
-    "interface-datastore": "^3.0.4",
+    "interface-datastore": "^4.0.0",
     "uint8arrays": "^2.0.5"
   },
   "devDependencies": {
