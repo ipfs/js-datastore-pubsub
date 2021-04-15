@@ -46,7 +46,7 @@
     "@types/detect-node": "^2.0.0",
     "@types/mocha": "^8.2.1",
     "@types/sinon": "^9.0.10",
-    "aegir": "^32.1.0",
+    "aegir": "^33.1.0",
     "detect-node": "^2.0.4",
     "ipfs-core-types": "^0.3.0",
     "it-pair": "^1.0.0",
