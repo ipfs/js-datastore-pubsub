@@ -35,7 +35,7 @@ const { keyToTopic, topicToKey } = require('../src/utils')
 // Valid record and select the new one
 const smoothValidator = {
   validate: () => {
-    return true
+    return Promise.resolve()
   },
   select: () => {
     return 0
@@ -160,7 +160,10 @@ describe('datastore-pubsub', function () {
 
         expect(receivedRecord.value.toString()).to.equal(value) // validator should deserialize correctly
 
-        return receivedRecord.value.toString() === value
+        if (receivedRecord.value.toString() === value) {
+          return Promise.resolve()
+        }
+        return Promise.reject(new Error('invalid record'))
       },
       select: () => {
         return 0
@@ -287,7 +290,7 @@ describe('datastore-pubsub', function () {
   it('should fail if it fails getTopics to validate the record', async () => {
     const customValidator = {
       validate: () => {
-        return false // return false validation
+        throw new Error()
       },
       select: () => {
         return 0
@@ -332,7 +335,7 @@ describe('datastore-pubsub', function () {
   it('should get the second record if the selector selects it as the newest one', async () => {
     const customValidator = {
       validate: () => {
-        return true
+        return Promise.resolve()
       },
       select: () => {
         return 1 // current record is the newer
@@ -383,7 +386,7 @@ describe('datastore-pubsub', function () {
   it('should get the new record if the selector selects it as the newest one', async () => {
     const customValidator = {
       validate: () => {
-        return true
+        return Promise.resolve()
       },
       select: () => {
         return 0 // received record is the newer

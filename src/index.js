@@ -14,7 +14,7 @@ const log = Object.assign(debug('datastore-pubsub:publisher'), {
  * @typedef {import('peer-id')} PeerId
  * @typedef {import('./types').Validator} Validator
  * @typedef {import('./types').SubscriptionKeyFn} SubscriptionKeyFn
- * @typedef {import('libp2p-interfaces/src/pubsub/message').Message} PubSubMessage
+ * @typedef {import('libp2p-interfaces/src/pubsub').InMessage} PubSubMessage
  */
 
 // DatastorePubsub is responsible for providing an api for pubsub to be used as a datastore with
@@ -253,11 +253,11 @@ class DatastorePubsub extends Adapter {
   /**
    * Select the best record according to the received select function
    *
-   * @param {Uint8Array} receivedRecord
-   * @param {Uint8Array} currentRecord
+   * @param {Uint8Array} key
+   * @param {Uint8Array[]} records
    */
-  async _selectRecord (receivedRecord, currentRecord) {
-    const res = await this._validator.select(receivedRecord, currentRecord)
+  async _selectRecord (key, records) {
+    const res = await this._validator.select(key, records)
 
     // If the selected was the first (0), it should be stored (true)
     return res === 0
@@ -270,17 +270,10 @@ class DatastorePubsub extends Adapter {
    * @param {Uint8Array} val
    */
   async _isBetter (key, val) {
-    // validate received record
-    let error, valid
-
     try {
-      valid = await this._validateRecord(val, key)
+      await this._validateRecord(val, key)
     } catch (err) {
-      error = err
-    }
-
-    // If not valid, it is not better than the one currently available
-    if (error || !valid) {
+      // If not valid, it is not better than the one currently available
       const errMsg = 'record received through pubsub is not valid'
 
       log.error(errMsg)
@@ -304,7 +297,7 @@ class DatastorePubsub extends Adapter {
     }
 
     // verify if the received record should replace the current one
-    return this._selectRecord(val, currentRecord)
+    return this._selectRecord(key, [currentRecord, val])
   }
 
   /**
