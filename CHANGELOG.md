@@ -1,3 +1,12 @@
+# [0.6.0](https://github.com/ipfs/js-datastore-pubsub/compare/v0.5.1...v0.6.0) (2021-04-22)
+
+
+### Bug Fixes
+
+* use dht selectors and validators from interfaces ([#74](https://github.com/ipfs/js-datastore-pubsub/issues/74)) ([06c80ca](https://github.com/ipfs/js-datastore-pubsub/commit/06c80ca82bd998b73514dd3f8ce2eddcbe2f3cce))
+
+
+
 ## [0.5.1](https://github.com/ipfs/js-datastore-pubsub/compare/v0.5.0...v0.5.1) (2021-04-15)
 
 
