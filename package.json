@@ -48,7 +48,7 @@
     "@types/sinon": "^10.0.0",
     "aegir": "^33.1.0",
     "detect-node": "^2.0.4",
-    "ipfs-core-types": "^0.3.0",
+    "ipfs-core-types": "^0.4.0",
     "it-pair": "^1.0.0",
     "libp2p": "^0.30.9",
     "libp2p-gossipsub": "^0.8.0",
