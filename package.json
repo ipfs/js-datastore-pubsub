@@ -52,7 +52,7 @@
     "it-pair": "^1.0.0",
     "libp2p": "^0.30.9",
     "libp2p-gossipsub": "^0.8.0",
-    "libp2p-interfaces": "^0.10.3",
+    "libp2p-interfaces": "^0.11.0",
     "libp2p-record": "^0.10.0",
     "p-wait-for": "^3.1.0",
     "peer-id": "^0.14.2",
