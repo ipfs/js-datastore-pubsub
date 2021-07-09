@@ -6,7 +6,8 @@
   "main": "src/index.js",
   "types": "dist/src/index.d.ts",
   "scripts": {
-    "prepare": "aegir build --no-bundle",
+    "prepare": "npm run build",
+    "build": "aegir build --no-bundle",
     "lint": "aegir lint",
     "release": "aegir release --target node",
     "release-minor": "aegir release --target node --type minor",
