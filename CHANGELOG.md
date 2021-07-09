@@ -1,3 +1,17 @@
+# [0.7.0](https://github.com/ipfs/js-datastore-pubsub/compare/v0.6.1...v0.7.0) (2021-07-09)
+
+
+### chore
+
+* update deps ([#95](https://github.com/ipfs/js-datastore-pubsub/issues/95)) ([04219c3](https://github.com/ipfs/js-datastore-pubsub/commit/04219c3c6a443d354218833dbe2191288c874c37))
+
+
+### BREAKING CHANGES
+
+* uses ecosystem modules that use the new multiformats CID class
+
+
+
 ## [0.6.1](https://github.com/ipfs/js-datastore-pubsub/compare/v0.6.0...v0.6.1) (2021-04-22)
 
 
