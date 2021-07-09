@@ -50,7 +50,7 @@
     "detect-node": "^2.0.4",
     "ipfs-core-types": "^0.5.2",
     "it-pair": "^1.0.0",
-    "libp2p": "^0.32.0-rc.0",
+    "libp2p": "next",
     "libp2p-gossipsub": "^0.11.0",
     "libp2p-interfaces": "^1.0.1",
     "libp2p-record": "^0.10.0",
