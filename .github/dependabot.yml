@@ -1,0 +1,30 @@
+version: 2
+updates:
+- package-ecosystem: npm
+  directory: "/"
+  schedule:
+    interval: daily
+    time: "11:00"
+  open-pull-requests-limit: 10
+  ignore:
+  - dependency-name: libp2p-interfaces
+    versions:
+    - 0.10.0
+    - 0.10.1
+    - 0.10.3
+    - 0.9.0
+  - dependency-name: aegir
+    versions:
+    - 31.0.0
+    - 31.0.1
+    - 32.0.2
+    - 33.0.0
+  - dependency-name: sinon
+    versions:
+    - 10.0.0
+  - dependency-name: err-code
+    versions:
+    - 3.0.0
+  - dependency-name: interface-datastore
+    versions:
+    - 3.0.3
