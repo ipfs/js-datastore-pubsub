@@ -45,7 +45,7 @@
   },
   "devDependencies": {
     "@types/detect-node": "^2.0.0",
-    "@types/mocha": "^8.2.1",
+    "@types/mocha": "^9.0.0",
     "@types/sinon": "^10.0.0",
     "aegir": "^34.0.1",
     "detect-node": "^2.0.4",
