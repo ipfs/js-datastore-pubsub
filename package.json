@@ -8,7 +8,7 @@
   "scripts": {
     "prepare": "npm run build",
     "build": "aegir build --no-bundle",
-    "lint": "aegir lint",
+    "lint": "aegir ts -p check && aegir lint",
     "release": "aegir release --target node",
     "release-minor": "aegir release --target node --type minor",
     "release-major": "aegir release --target node --type major",
@@ -41,15 +41,13 @@
     "debug": "^4.2.0",
     "err-code": "^3.0.1",
     "interface-datastore": "^5.1.1",
-    "uint8arrays": "^2.0.5"
+    "uint8arrays": "^3.0.0"
   },
   "devDependencies": {
     "@types/detect-node": "^2.0.0",
-    "@types/mocha": "^8.2.1",
-    "@types/sinon": "^10.0.0",
-    "aegir": "^34.0.1",
+    "aegir": "^35.0.2",
     "detect-node": "^2.0.4",
-    "ipfs-core-types": "^0.5.2",
+    "ipfs-core-types": "^0.7.0",
     "it-pair": "^1.0.0",
     "libp2p": "next",
     "libp2p-gossipsub": "^0.11.0",

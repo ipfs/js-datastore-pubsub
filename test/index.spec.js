@@ -5,8 +5,8 @@ const { expect } = require('aegir/utils/chai')
 const sinon = require('sinon')
 const errcode = require('err-code')
 const isNode = require('detect-node')
-const uint8ArrayToString = require('uint8arrays/to-string')
-const uint8ArrayFromString = require('uint8arrays/from-string')
+const { toString: uint8ArrayToString } = require('uint8arrays/to-string')
+const { fromString: uint8ArrayFromString } = require('uint8arrays/from-string')
 
 const DatastorePubsub = require('../src')
 

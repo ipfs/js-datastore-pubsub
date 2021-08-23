@@ -2,7 +2,7 @@
 
 const { Key, Adapter } = require('interface-datastore')
 const { encodeBase32, keyToTopic, topicToKey } = require('./utils')
-const uint8ArrayEquals = require('uint8arrays/equals')
+const { equals: uint8ArrayEquals } = require('uint8arrays/equals')
 
 const errcode = require('err-code')
 const debug = require('debug')
