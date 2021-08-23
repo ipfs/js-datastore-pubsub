@@ -1,3 +1,7 @@
+## [0.7.1](https://github.com/ipfs/js-datastore-pubsub/compare/v0.7.0...v0.7.1) (2021-08-23)
+
+
+
 # [0.7.0](https://github.com/ipfs/js-datastore-pubsub/compare/v0.6.1...v0.7.0) (2021-07-09)
 
 
