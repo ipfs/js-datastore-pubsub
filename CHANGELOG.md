@@ -1,3 +1,17 @@
+# [1.0.0](https://github.com/ipfs/js-datastore-pubsub/compare/v0.7.1...v1.0.0) (2021-09-09)
+
+
+### chore
+
+* switch to esm ([#100](https://github.com/ipfs/js-datastore-pubsub/issues/100)) ([c8a91f0](https://github.com/ipfs/js-datastore-pubsub/commit/c8a91f0e4bbf1cbfa69aefe5e881a5632e8bb430))
+
+
+### BREAKING CHANGES
+
+* now uses named exports
+
+
+
 ## [0.7.1](https://github.com/ipfs/js-datastore-pubsub/compare/v0.7.0...v0.7.1) (2021-08-23)
 
 
