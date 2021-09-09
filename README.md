@@ -36,9 +36,9 @@
 ## Usage
 
 ```js
-const DatastorePubsub = require('datastore-pubsub')
+import { PubsubDatastore } from 'datastore-pubsub'
 
-const dsPubsub = new DatastorePubsub(pubsub, datastore, peerId, validator)
+const dsPubsub = new PubsubDatastore(pubsub, datastore, peerId, validator)
 ```
 
 ## API
@@ -46,7 +46,7 @@ const dsPubsub = new DatastorePubsub(pubsub, datastore, peerId, validator)
 #### Setup
 
 ```js
-new DatastorePubsub(pubsub, datastore, peerId, validator, subscriptionKeyFn)
+new PubsubDatastore(pubsub, datastore, peerId, validator, subscriptionKeyFn)
 ```
 
 Creates a DatastorePubsub instance.

@@ -1,13 +1,10 @@
-'use strict'
 
-const PeerId = require('peer-id')
+import PeerId from 'peer-id'
 // @ts-ignore
-const DuplexPair = require('it-pair/duplex')
-
-const Gossipsub = require('libp2p-gossipsub')
+import DuplexPair from 'it-pair/duplex.js'
+import pWaitFor from 'p-wait-for'
+import Gossipsub from 'libp2p-gossipsub'
 const { multicodec } = Gossipsub
-
-const pWaitFor = require('p-wait-for')
 
 /**
  * @typedef {import('libp2p-interfaces/src/pubsub')} Pubsub
@@ -51,7 +48,7 @@ const createMockRegistrar = (registrarRecord) => {
  *
  * @param {object} registrarRecord
  */
-exports.createPubsubNode = async (registrarRecord) => {
+export const createPubsubNode = async (registrarRecord) => {
   const peerId = await PeerId.create({ bits: 1024 })
 
   const libp2p = {
@@ -93,7 +90,7 @@ const ConnectionPair = () => {
  * @param {Connectable} pubsubA
  * @param {Connectable} pubsubB
  */
-exports.connectPubsubNodes = async (pubsubA, pubsubB) => {
+export const connectPubsubNodes = async (pubsubA, pubsubB) => {
   const onConnectA = pubsubA.registrar[multicodec].onConnect
   const onConnectB = pubsubB.registrar[multicodec].onConnect
   const handleA = pubsubA.registrar[multicodec].handler
@@ -126,7 +123,7 @@ exports.connectPubsubNodes = async (pubsubA, pubsubB) => {
  *
  * @param {() => boolean} predicate
  */
-exports.waitFor = predicate => pWaitFor(predicate, { interval: 1000, timeout: 10000 })
+export const waitFor = predicate => pWaitFor(predicate, { interval: 1000, timeout: 10000 })
 
 /**
  * Wait until a peer subscribes a topic
@@ -135,7 +132,7 @@ exports.waitFor = predicate => pWaitFor(predicate, { interval: 1000, timeout: 10
  * @param {PeerId} peer
  * @param {Pubsub} node
  */
-exports.waitForPeerToSubscribe = (topic, peer, node) => {
+export const waitForPeerToSubscribe = (topic, peer, node) => {
   return pWaitFor(async () => {
     const peers = await node.getSubscribers(topic)
 
