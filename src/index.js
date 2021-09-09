@@ -1,11 +1,10 @@
-'use strict'
+import { Key } from 'interface-datastore'
+import { BaseDatastore } from 'datastore-core'
+import { encodeBase32, keyToTopic, topicToKey } from './utils.js'
+import { equals as uint8ArrayEquals } from 'uint8arrays/equals'
+import errcode from 'err-code'
+import debug from 'debug'
 
-const { Key, Adapter } = require('interface-datastore')
-const { encodeBase32, keyToTopic, topicToKey } = require('./utils')
-const { equals: uint8ArrayEquals } = require('uint8arrays/equals')
-
-const errcode = require('err-code')
-const debug = require('debug')
 const log = Object.assign(debug('datastore-pubsub:publisher'), {
   error: debug('datastore-pubsub:publisher:error')
 })
@@ -19,7 +18,7 @@ const log = Object.assign(debug('datastore-pubsub:publisher'), {
 
 // DatastorePubsub is responsible for providing an api for pubsub to be used as a datastore with
 // [TieredDatastore]{@link https://github.com/ipfs/js-datastore-core/blob/master/src/tiered.js}
-class DatastorePubsub extends Adapter {
+export class PubsubDatastore extends BaseDatastore {
   /**
    * Creates an instance of DatastorePubsub.
    *
@@ -314,5 +313,3 @@ class DatastorePubsub extends Adapter {
     log(`record for ${keyToTopic(key)} was stored in the datastore`)
   }
 }
-
-exports = module.exports = DatastorePubsub
