@@ -1,6 +1,6 @@
 {
   "name": "datastore-pubsub",
-  "version": "0.7.1",
+  "version": "1.0.0",
   "description": "Responsible for providing an interface-datastore compliant api to pubsub",
   "leadMaintainer": "Vasco Santos <vasco.santos@moxy.studio>",
   "main": "src/index.js",
