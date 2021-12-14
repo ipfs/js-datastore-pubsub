@@ -52,7 +52,7 @@
   },
   "devDependencies": {
     "@types/detect-node": "^2.0.0",
-    "aegir": "^35.0.2",
+    "aegir": "^36.1.1",
     "detect-node": "^2.0.4",
     "ipfs-core-types": "^0.8.1",
     "it-pair": "^1.0.0",
