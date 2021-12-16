@@ -54,7 +54,7 @@
     "@types/detect-node": "^2.0.0",
     "aegir": "^35.0.2",
     "detect-node": "^2.0.4",
-    "ipfs-core-types": "^0.8.1",
+    "ipfs-core-types": "^0.9.0",
     "it-pair": "^1.0.0",
     "libp2p": "next",
     "libp2p-gossipsub": "^0.11.0",
