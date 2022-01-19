@@ -166,7 +166,7 @@
     "aegir": "^36.1.3",
     "detect-node": "^2.0.4",
     "ipfs-core-types": "^0.9.0",
-    "it-pair": "^1.0.0",
+    "it-pair": "^2.0.2",
     "libp2p": "next",
     "libp2p-interfaces": "^4.0.0",
     "libp2p-record": "^0.10.0",
