@@ -3,7 +3,7 @@ import PeerId from 'peer-id'
 // @ts-ignore
 import DuplexPair from 'it-pair/duplex.js'
 import pWaitFor from 'p-wait-for'
-import Gossipsub from 'libp2p-gossipsub'
+import Gossipsub from '@achingbrain/libp2p-gossipsub'
 const { multicodec } = Gossipsub
 
 /**
@@ -16,7 +16,7 @@ const { multicodec } = Gossipsub
 const createMockRegistrar = (registrarRecord) => {
   return {
     /** @type {import('libp2p')["handle"]} */
-    handle: (multicodecs, handler) => {
+    handle: async (multicodecs, handler) => {
       const rec = registrarRecord[multicodecs[0]] || {}
 
       registrarRecord[multicodecs[0]] = {
@@ -28,7 +28,7 @@ const createMockRegistrar = (registrarRecord) => {
      *
      * @param {import('libp2p-interfaces/src/topology') & { multicodecs: string[] }} arg
      */
-    register: ({ multicodecs, _onConnect, _onDisconnect }) => {
+    register: async ({ multicodecs, _onConnect, _onDisconnect }) => {
       const rec = registrarRecord[multicodecs[0]] || {}
 
       registrarRecord[multicodecs[0]] = {

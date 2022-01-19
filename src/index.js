@@ -114,7 +114,7 @@ export class PubsubDatastore extends BaseDatastore {
     try {
       this._pubsub.on(stringifiedTopic, this._onMessage)
       await this._pubsub.subscribe(stringifiedTopic)
-    } catch (err) {
+    } catch (/** @type {any} */ err) {
       const errMsg = `cannot subscribe topic ${stringifiedTopic}`
 
       log.error(errMsg)
@@ -151,7 +151,7 @@ export class PubsubDatastore extends BaseDatastore {
 
     try {
       dsVal = await this._datastore.get(routingKey)
-    } catch (err) {
+    } catch (/** @type {any} */ err) {
       if (err.code !== 'ERR_NOT_FOUND') {
         const errMsg = `unexpected error getting the ipns record for ${routingKey.toString()}`
 
@@ -184,7 +184,7 @@ export class PubsubDatastore extends BaseDatastore {
     let key
     try {
       key = topicToKey(topicIDs[0])
-    } catch (err) {
+    } catch (/** @type {any} */ err) {
       log.error(err)
       return
     }
@@ -202,7 +202,7 @@ export class PubsubDatastore extends BaseDatastore {
 
       try {
         res = await this._handleSubscriptionKeyFn(key)
-      } catch (err) {
+      } catch (/** @type {any} */ err) {
         log.error('message discarded by the subscriptionKeyFn')
         return
       }
@@ -212,7 +212,7 @@ export class PubsubDatastore extends BaseDatastore {
 
     try {
       await this._storeIfSubscriptionIsBetter(key, data)
-    } catch (err) {
+    } catch (/** @type {any} */ err) {
       log.error(err)
     }
   }
@@ -228,7 +228,7 @@ export class PubsubDatastore extends BaseDatastore {
 
     try {
       isBetter = await this._isBetter(key, data)
-    } catch (err) {
+    } catch (/** @type {any} */ err) {
       if (err.code !== 'ERR_NOT_VALID_RECORD') {
         throw err
       }
@@ -271,7 +271,7 @@ export class PubsubDatastore extends BaseDatastore {
   async _isBetter (key, val) {
     try {
       await this._validateRecord(val, key)
-    } catch (err) {
+    } catch (/** @type {any} */ err) {
       // If not valid, it is not better than the one currently available
       const errMsg = 'record received through pubsub is not valid'
 
@@ -285,7 +285,7 @@ export class PubsubDatastore extends BaseDatastore {
 
     try {
       currentRecord = await this._getLocal(dsKey.uint8Array())
-    } catch (err) {
+    } catch (/** @type {any} */ err) {
       // if the old one is invalid, the new one is *always* better
       return true
     }
