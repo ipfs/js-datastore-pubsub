@@ -1,3 +1,15 @@
+## [2.0.0](https://github.com/ipfs/js-datastore-pubsub/compare/v1.0.0...v2.0.0) (2022-01-19)
+
+
+### ⚠ BREAKING CHANGES
+
+* changes project config to use unified ci
+
+### Trivial Changes
+
+* bump ipfs-core-types from 0.7.3 to 0.8.1 ([#102](https://github.com/ipfs/js-datastore-pubsub/issues/102)) ([dbdcadc](https://github.com/ipfs/js-datastore-pubsub/commit/dbdcadc505af5e1ea000afa888243a2ed43aec13))
+* switch to unified ci ([#125](https://github.com/ipfs/js-datastore-pubsub/issues/125)) ([94a83fc](https://github.com/ipfs/js-datastore-pubsub/commit/94a83fcf1b85ffc225f24cfdab0c03765794ed70))
+
 # [1.0.0](https://github.com/ipfs/js-datastore-pubsub/compare/v0.7.1...v1.0.0) (2021-09-09)
 
 
@@ -234,6 +246,3 @@
 ### Features
 
 * initial implementation ([2f21e16](https://github.com/ipfs/js-datastore-pubsub/commit/2f21e16))
-
-
-
