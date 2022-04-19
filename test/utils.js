@@ -1,13 +1,14 @@
-
-import PeerId from 'peer-id'
-// @ts-ignore
-import DuplexPair from 'it-pair/duplex.js'
+import { duplexPair } from 'it-pair/duplex'
 import pWaitFor from 'p-wait-for'
-import Gossipsub from '@achingbrain/libp2p-gossipsub'
+import { Gossipsub } from '@achingbrain/libp2p-gossipsub'
+import { createEd25519PeerId } from '@libp2p/peer-id-factory'
+import { Components } from '@libp2p/interfaces/components'
+
 const { multicodec } = Gossipsub
 
 /**
- * @typedef {import('libp2p-interfaces/src/pubsub')} Pubsub
+ * @typedef {import('@libp2p/interfaces/pubsub').PubSub} Pubsub
+ * @typedef {import('@libp2p/interfaces/peer-id').PeerId} PeerId
  */
 
 /**
@@ -15,7 +16,7 @@ const { multicodec } = Gossipsub
  */
 const createMockRegistrar = (registrarRecord) => {
   return {
-    /** @type {import('libp2p')["handle"]} */
+    /** @type {import('libp2p').Libp2p["handle"]} */
     handle: async (multicodecs, handler) => {
       const rec = registrarRecord[multicodecs[0]] || {}
 
@@ -24,17 +25,23 @@ const createMockRegistrar = (registrarRecord) => {
         handler
       }
     },
+    /** @type {import('libp2p').Libp2p["unhandle"]} */
+    unhandle: async (multicodecs) => {
+      delete registrarRecord[multicodecs[0]]
+    },
     /**
-     *
-     * @param {import('libp2p-interfaces/src/topology') & { multicodecs: string[] }} arg
+     * @param {string[]} multicodecs
+     * @param {import('@libp2p/interfaces/topology').Topology} topology
      */
-    register: async ({ multicodecs, _onConnect, _onDisconnect }) => {
+    register: async (multicodecs, topology) => {
+      const { onConnect, onDisconnect } = topology
+
       const rec = registrarRecord[multicodecs[0]] || {}
 
       registrarRecord[multicodecs[0]] = {
         ...rec,
-        onConnect: _onConnect,
-        onDisconnect: _onDisconnect
+        onConnect,
+        onDisconnect
       }
 
       return multicodecs[0]
@@ -47,9 +54,10 @@ const createMockRegistrar = (registrarRecord) => {
  * As created by libp2p
  *
  * @param {object} registrarRecord
+ * @returns {Promise<{ peerId: PeerId, pubsub: Gossipsub }>}
  */
 export const createPubsubNode = async (registrarRecord) => {
-  const peerId = await PeerId.create({ bits: 1024 })
+  const peerId = await createEd25519PeerId()
 
   const libp2p = {
     peerId,
@@ -59,16 +67,21 @@ export const createPubsubNode = async (registrarRecord) => {
     }
   }
 
-  // @ts-ignore just enough libp2p
+  // @ts-expect-error just enough libp2p
   const pubsub = new Gossipsub(libp2p)
+  // @ts-expect-error just enough libp2p
+  pubsub.init(new Components(libp2p))
 
   await pubsub.start()
 
-  return pubsub
+  return {
+    pubsub,
+    peerId
+  }
 }
 
 const ConnectionPair = () => {
-  const [d0, d1] = DuplexPair()
+  const [d0, d1] = duplexPair()
 
   return [
     {
@@ -86,6 +99,7 @@ const ConnectionPair = () => {
  * @typedef {object} Connectable
  * @property {Pubsub} router
  * @property {any} registrar
+ * @property {PeerId} peerId
  *
  * @param {Connectable} pubsubA
  * @param {Connectable} pubsubB
@@ -98,14 +112,14 @@ export const connectPubsubNodes = async (pubsubA, pubsubB) => {
 
   // Notice peers of connection
   const [c0, c1] = ConnectionPair()
-  await onConnectA(pubsubB.router.peerId, c0)
-  await onConnectB(pubsubA.router.peerId, c1)
+  await onConnectA(pubsubB.peerId, c0)
+  await onConnectB(pubsubA.peerId, c1)
 
   await handleB({
     protocol: multicodec,
     stream: c1.stream,
     connection: {
-      remotePeer: pubsubA.router.peerId
+      remotePeer: pubsubA.peerId
     }
   })
 
@@ -113,7 +127,7 @@ export const connectPubsubNodes = async (pubsubA, pubsubB) => {
     protocol: multicodec,
     stream: c0.stream,
     connection: {
-      remotePeer: pubsubB.router.peerId
+      remotePeer: pubsubB.peerId
     }
   })
 }
@@ -136,7 +150,7 @@ export const waitForPeerToSubscribe = (topic, peer, node) => {
   return pWaitFor(async () => {
     const peers = await node.getSubscribers(topic)
 
-    if (peers.includes(peer.toB58String())) {
+    if (peers.map(p => p.toString()).includes(peer.toString())) {
       return true
     }
 

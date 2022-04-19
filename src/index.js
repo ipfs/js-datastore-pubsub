@@ -3,44 +3,43 @@ import { BaseDatastore } from 'datastore-core'
 import { encodeBase32, keyToTopic, topicToKey } from './utils.js'
 import { equals as uint8ArrayEquals } from 'uint8arrays/equals'
 import errcode from 'err-code'
-import debug from 'debug'
+import { logger } from '@libp2p/logger'
+import { CustomEvent } from '@libp2p/interfaces'
 
-const log = Object.assign(debug('datastore-pubsub:publisher'), {
-  error: debug('datastore-pubsub:publisher:error')
-})
+const log = logger('datastore-pubsub:publisher')
 
 /**
- * @typedef {import('peer-id')} PeerId
- * @typedef {import('./types').Validator} Validator
+ * @typedef {import('@libp2p/interfaces/peer-id').PeerId} PeerId
  * @typedef {import('./types').SubscriptionKeyFn} SubscriptionKeyFn
- * @typedef {import('libp2p-interfaces/src/pubsub').InMessage} PubSubMessage
+ * @typedef {import('@libp2p/interfaces/pubsub').Message} PubSubMessage
  */
 
 // DatastorePubsub is responsible for providing an api for pubsub to be used as a datastore with
 // [TieredDatastore]{@link https://github.com/ipfs/js-datastore-core/blob/master/src/tiered.js}
-export class PubsubDatastore extends BaseDatastore {
+export class PubSubDatastore extends BaseDatastore {
   /**
    * Creates an instance of DatastorePubsub.
    *
-   * @param {import('libp2p-interfaces/src/pubsub')} pubsub - pubsub implementation
+   * @param {import('@libp2p/interfaces/pubsub').PubSub} pubsub - pubsub implementation
    * @param {import('interface-datastore').Datastore} datastore - datastore instance
    * @param {PeerId} peerId - peer-id instance
-   * @param {Validator} validator - validator functions
+   * @param {import('@libp2p/interfaces/dht').ValidateFn} validator - validator function
+   * @param {import('@libp2p/interfaces/dht').SelectFn} selector - selector function
    * @param {SubscriptionKeyFn} [subscriptionKeyFn] - function to manipulate the key topic received before processing it
    * @memberof DatastorePubsub
    */
-  constructor (pubsub, datastore, peerId, validator, subscriptionKeyFn) {
+  constructor (pubsub, datastore, peerId, validator, selector, subscriptionKeyFn) {
     super()
 
     if (!validator) {
       throw errcode(new TypeError('missing validator'), 'ERR_INVALID_PARAMETERS')
     }
 
-    if (typeof validator.validate !== 'function') {
+    if (typeof validator !== 'function') {
       throw errcode(new TypeError('missing validate function'), 'ERR_INVALID_PARAMETERS')
     }
 
-    if (typeof validator.select !== 'function') {
+    if (typeof selector !== 'function') {
       throw errcode(new TypeError('missing select function'), 'ERR_INVALID_PARAMETERS')
     }
 
@@ -52,6 +51,7 @@ export class PubsubDatastore extends BaseDatastore {
     this._datastore = datastore
     this._peerId = peerId
     this._validator = validator
+    this._selector = selector
     this._handleSubscriptionKeyFn = subscriptionKeyFn
 
     // Bind _onMessage function, which is called by pubsub.
@@ -85,7 +85,7 @@ export class PubsubDatastore extends BaseDatastore {
     log(`publish value for topic ${stringifiedTopic}`)
 
     // Publish record to pubsub
-    await this._pubsub.publish(stringifiedTopic, val)
+    await this._pubsub.dispatchEvent(new CustomEvent(stringifiedTopic, { detail: val }))
   }
 
   /**
@@ -112,7 +112,7 @@ export class PubsubDatastore extends BaseDatastore {
 
     // subscribe
     try {
-      this._pubsub.on(stringifiedTopic, this._onMessage)
+      this._pubsub.addEventListener(stringifiedTopic, this._onMessage)
       await this._pubsub.subscribe(stringifiedTopic)
     } catch (/** @type {any} */ err) {
       const errMsg = `cannot subscribe topic ${stringifiedTopic}`
@@ -134,7 +134,7 @@ export class PubsubDatastore extends BaseDatastore {
   unsubscribe (key) {
     const stringifiedTopic = keyToTopic(key)
 
-    this._pubsub.removeListener(stringifiedTopic, this._onMessage)
+    this._pubsub.removeEventListener(stringifiedTopic, this._onMessage)
     return this._pubsub.unsubscribe(stringifiedTopic)
   }
 
@@ -177,22 +177,23 @@ export class PubsubDatastore extends BaseDatastore {
   /**
    * handles pubsub subscription messages
    *
-   * @param {PubSubMessage} msg
+   * @param {CustomEvent<PubSubMessage>} evt
    */
-  async _onMessage (msg) {
-    const { data, from, topicIDs } = msg
+  async _onMessage (evt) {
+    const msg = evt.detail
+    const { data, from, topic } = msg
     let key
     try {
-      key = topicToKey(topicIDs[0])
+      key = topicToKey(topic)
     } catch (/** @type {any} */ err) {
       log.error(err)
       return
     }
 
-    log(`message received for topic ${topicIDs[0]}`)
+    log(`message received for topic ${topic}`)
 
     // Stop if the message is from the peer (it already stored it while publishing to pubsub)
-    if (from === this._peerId.toB58String()) {
+    if (this._peerId.equals(from)) {
       log('message discarded as it is from the same peer')
       return
     }
@@ -246,7 +247,7 @@ export class PubsubDatastore extends BaseDatastore {
    * @param {Uint8Array} peerId
    */
   async _validateRecord (value, peerId) { // eslint-disable-line require-await
-    return this._validator.validate(value, peerId)
+    return this._validator(value, peerId)
   }
 
   /**
@@ -256,7 +257,7 @@ export class PubsubDatastore extends BaseDatastore {
    * @param {Uint8Array[]} records
    */
   async _selectRecord (key, records) {
-    const res = await this._validator.select(key, records)
+    const res = await this._selector(key, records)
 
     // If the selected was the first (0), it should be stored (true)
     return res === 0
