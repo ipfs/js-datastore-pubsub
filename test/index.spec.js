@@ -1,12 +1,12 @@
 /* eslint-env mocha */
 
-import { expect } from 'aegir/utils/chai.js'
+import { expect } from 'aegir/chai'
 import sinon from 'sinon'
 import errcode from 'err-code'
 import isNode from 'detect-node'
 import { toString as uint8ArrayToString } from 'uint8arrays/to-string'
 import { fromString as uint8ArrayFromString } from 'uint8arrays/from-string'
-import { PubsubDatastore } from '../src/index.js'
+import { PubSubDatastore } from '../src/index.js'
 import { Key } from 'interface-datastore'
 import { MemoryDatastore } from 'datastore-core'
 import {
@@ -15,26 +15,25 @@ import {
   waitFor,
   waitForPeerToSubscribe
 } from './utils.js'
-import { Record } from 'libp2p-record'
+import { Libp2pRecord } from '@libp2p/record'
 import { keyToTopic, topicToKey } from '../src/utils.js'
 
 /**
- * @typedef {import('libp2p-interfaces/src/pubsub')} PubSub
+ * @typedef {import('@libp2p/interfaces/pubsub').PubSub} PubSub
  * @typedef {import('interface-datastore').Datastore} Datastore
- * @typedef {import('peer-id')} PeerId
- * @typedef {import('../src/types').Validator} Validator
+ * @typedef {import('@libp2p/interfaces/peer-id').PeerId} PeerId
+ * @typedef {import('@libp2p/interfaces/dht').ValidateFn} Validator
  * @typedef {import('../src/types').SubscriptionKeyFn} SubscriptionKeyFn
  */
 
 // Always returning the expected values
 // Valid record and select the new one
-const smoothValidator = {
-  validate: () => {
-    return Promise.resolve()
-  },
-  select: () => {
-    return 0
-  }
+const smoothValidator = () => {
+  return Promise.resolve()
+}
+
+const smoothSelector = () => {
+  return 0
 }
 
 describe('datastore-pubsub', function () {
@@ -60,19 +59,24 @@ describe('datastore-pubsub', function () {
 
   // Mount pubsub protocol and create datastore instances
   before(async () => {
-    [pubsubA, pubsubB] = await Promise.all([
+    const [a, b] = await Promise.all([
       createPubsubNode(registrarRecordA),
       createPubsubNode(registrarRecordB)
     ])
-    peerIdA = pubsubA.peerId
-    peerIdB = pubsubB.peerId
+    peerIdA = a.peerId
+    peerIdB = b.peerId
+
+    pubsubA = a.pubsub
+    pubsubB = b.pubsub
 
     await connectPubsubNodes(
       {
+        peerId: peerIdA,
         router: pubsubA,
         registrar: registrarRecordA
       },
       {
+        peerId: peerIdB,
         router: pubsubB,
         registrar: registrarRecordB
       })
@@ -86,7 +90,7 @@ describe('datastore-pubsub', function () {
   let keyRef = ''
   /** @type {Uint8Array} */
   let key
-  /** @type {import('libp2p-record').Record} */
+  /** @type {import('@libp2p/record').Libp2pRecord} */
   let record
   /** @type {Uint8Array} */
   let serializedRecord
@@ -95,7 +99,7 @@ describe('datastore-pubsub', function () {
   beforeEach(() => {
     keyRef = `key${testCounter}`
     key = (new Key(keyRef)).uint8Array()
-    record = new Record(key, uint8ArrayFromString(value))
+    record = new Libp2pRecord(key, uint8ArrayFromString(value), new Date())
 
     serializedRecord = record.serialize()
   })
@@ -112,7 +116,7 @@ describe('datastore-pubsub', function () {
   })
 
   it('should subscribe the topic, but receive error as no entry is stored locally', async () => {
-    const dsPubsubA = new PubsubDatastore(pubsubA, datastoreA, peerIdA, smoothValidator)
+    const dsPubsubA = new PubSubDatastore(pubsubA, datastoreA, peerIdA, smoothValidator, smoothSelector)
     const subsTopic = keyToTopic(`/${keyRef}`)
 
     let subscribers = await pubsubA.getTopics()
@@ -130,8 +134,8 @@ describe('datastore-pubsub', function () {
   })
 
   it('should put correctly to node A and node B should not receive it without subscribing', async () => {
-    const dsPubsubA = new PubsubDatastore(pubsubA, datastoreA, peerIdA, smoothValidator)
-    const dsPubsubB = new PubsubDatastore(pubsubB, datastoreB, peerIdB, smoothValidator)
+    const dsPubsubA = new PubSubDatastore(pubsubA, datastoreA, peerIdA, smoothValidator, smoothSelector)
+    const dsPubsubB = new PubSubDatastore(pubsubB, datastoreB, peerIdB, smoothValidator, smoothSelector)
     const subsTopic = keyToTopic(`/${keyRef}`)
 
     const res = await pubsubB.getTopics()
@@ -149,23 +153,13 @@ describe('datastore-pubsub', function () {
 
   it('should validate if record content is the same', async () => {
     /** @type {Validator} */
-    const customValidator = {
-      validate: (data) => {
-        const receivedRecord = Record.deserialize(data)
+    const customValidator = async (data) => {
+      const receivedRecord = Libp2pRecord.deserialize(data)
 
-        expect(receivedRecord.value.toString()).to.equal(value) // validator should deserialize correctly
-
-        if (receivedRecord.value.toString() === value) {
-          return Promise.resolve()
-        }
-        return Promise.reject(new Error('invalid record'))
-      },
-      select: () => {
-        return 0
-      }
+      expect(uint8ArrayToString(receivedRecord.value)).to.equal(value) // validator should deserialize correctly
     }
-    const dsPubsubA = new PubsubDatastore(pubsubA, datastoreA, peerIdA, smoothValidator)
-    const dsPubsubB = new PubsubDatastore(pubsubB, datastoreB, peerIdB, customValidator)
+    const dsPubsubA = new PubSubDatastore(pubsubA, datastoreA, peerIdA, smoothValidator, smoothSelector)
+    const dsPubsubB = new PubSubDatastore(pubsubB, datastoreB, peerIdB, customValidator, smoothSelector)
     const subsTopic = keyToTopic(`/${keyRef}`)
     let receivedMessage = false
 
@@ -179,7 +173,7 @@ describe('datastore-pubsub', function () {
     await waitForPeerToSubscribe(subsTopic, peerIdB, pubsubA)
 
     // subscribe in order to understand when the message arrive to the node
-    pubsubB.on(subsTopic, messageHandler)
+    pubsubB.addEventListener(subsTopic, messageHandler)
     await pubsubB.subscribe(subsTopic)
 
     await dsPubsubA.put(key, serializedRecord)
@@ -194,8 +188,8 @@ describe('datastore-pubsub', function () {
   })
 
   it('should put correctly to daemon A and daemon B should receive it as it tried to get it first and subscribed it', async () => {
-    const dsPubsubA = new PubsubDatastore(pubsubA, datastoreA, peerIdA, smoothValidator)
-    const dsPubsubB = new PubsubDatastore(pubsubB, datastoreB, peerIdB, smoothValidator)
+    const dsPubsubA = new PubSubDatastore(pubsubA, datastoreA, peerIdA, smoothValidator, smoothSelector)
+    const dsPubsubB = new PubSubDatastore(pubsubB, datastoreB, peerIdB, smoothValidator, smoothSelector)
     const subsTopic = keyToTopic(`/${keyRef}`)
     let receivedMessage = false
 
@@ -217,7 +211,7 @@ describe('datastore-pubsub', function () {
     await waitForPeerToSubscribe(subsTopic, peerIdB, pubsubA)
 
     // subscribe in order to understand when the message arrive to the node
-    pubsubB.on(subsTopic, messageHandler)
+    pubsubB.addEventListener(subsTopic, messageHandler)
     await pubsubB.subscribe(subsTopic)
     await dsPubsubA.put(key, serializedRecord)
 
@@ -228,15 +222,15 @@ describe('datastore-pubsub', function () {
     const result = await dsPubsubB.get(key)
     expect(result).to.exist()
 
-    const receivedRecord = Record.deserialize(result)
-    expect(receivedRecord.value.toString()).to.equal(value)
+    const receivedRecord = Libp2pRecord.deserialize(result)
+    expect(uint8ArrayToString(receivedRecord.value)).to.equal(value)
   })
 
-  it('should fail to create the PubsubDatastore if no validator is provided', () => {
+  it('should fail to create the PubSubDatastore if no validator is provided', () => {
     let dsPubsubB
     try {
       // @ts-expect-error no validator provided
-      dsPubsubB = new PubsubDatastore(pubsubB, datastoreB, peerIdB)
+      dsPubsubB = new PubSubDatastore(pubsubB, datastoreB, peerIdB)
     } catch (/** @type {any} */ err) {
       expect(err.code).to.equal('ERR_INVALID_PARAMETERS')
     }
@@ -244,7 +238,7 @@ describe('datastore-pubsub', function () {
     expect(dsPubsubB).to.equal(undefined)
   })
 
-  it('should fail to create the PubsubDatastore if no validate function is provided', () => {
+  it('should fail to create the PubSubDatastore if no validate function is provided', () => {
     const customValidator = {
       validate: undefined,
       select: () => {
@@ -255,7 +249,7 @@ describe('datastore-pubsub', function () {
     let dsPubsubB
     try {
       // @ts-expect-error invalid validator provided
-      dsPubsubB = new PubsubDatastore(pubsubB, datastoreB, peerIdB, customValidator)
+      dsPubsubB = new PubSubDatastore(pubsubB, datastoreB, peerIdB, customValidator)
     } catch (/** @type {any} */ err) {
       expect(err.code).to.equal('ERR_INVALID_PARAMETERS')
     }
@@ -263,7 +257,7 @@ describe('datastore-pubsub', function () {
     expect(dsPubsubB).to.equal(undefined)
   })
 
-  it('should fail to create the PubsubDatastore if no select function is provided', () => {
+  it('should fail to create the PubSubDatastore if no select function is provided', () => {
     const customValidator = {
       validate: () => {
         return true
@@ -274,7 +268,7 @@ describe('datastore-pubsub', function () {
     let dsPubsubB
     try {
       // @ts-expect-error invalid validator provided
-      dsPubsubB = new PubsubDatastore(pubsubB, datastoreB, peerIdB, customValidator)
+      dsPubsubB = new PubSubDatastore(pubsubB, datastoreB, peerIdB, customValidator)
     } catch (/** @type {any} */ err) {
       expect(err.code).to.equal('ERR_INVALID_PARAMETERS')
     }
@@ -283,16 +277,11 @@ describe('datastore-pubsub', function () {
   })
 
   it('should fail if it fails getTopics to validate the record', async () => {
-    const customValidator = {
-      validate: () => {
-        throw new Error()
-      },
-      select: () => {
-        return 0
-      }
+    const customValidator = () => {
+      throw new Error()
     }
-    const dsPubsubA = new PubsubDatastore(pubsubA, datastoreA, peerIdA, smoothValidator)
-    const dsPubsubB = new PubsubDatastore(pubsubB, datastoreB, peerIdB, customValidator)
+    const dsPubsubA = new PubSubDatastore(pubsubA, datastoreA, peerIdA, smoothValidator, smoothSelector)
+    const dsPubsubB = new PubSubDatastore(pubsubB, datastoreB, peerIdB, customValidator, smoothSelector)
     const subsTopic = keyToTopic(`/${keyRef}`)
     let receivedMessage = false
 
@@ -310,7 +299,7 @@ describe('datastore-pubsub', function () {
     await waitForPeerToSubscribe(subsTopic, peerIdB, pubsubA)
 
     // subscribe in order to understand when the message arrive to the node
-    await pubsubB.on(subsTopic, messageHandler)
+    await pubsubB.addEventListener(subsTopic, messageHandler)
     await pubsubB.subscribe(subsTopic)
     await dsPubsubA.put(key, serializedRecord)
 
@@ -328,21 +317,16 @@ describe('datastore-pubsub', function () {
   })
 
   it('should get the second record if the selector selects it as the newest one', async () => {
-    const customValidator = {
-      validate: () => {
-        return Promise.resolve()
-      },
-      select: () => {
-        return 1 // current record is the newer
-      }
+    const customSelector = () => {
+      return 1 // current record is the newer
     }
 
     const newValue = 'new value'
-    const record = new Record(key, uint8ArrayFromString(newValue))
+    const record = new Libp2pRecord(key, uint8ArrayFromString(newValue), new Date())
     const newSerializedRecord = record.serialize()
 
-    const dsPubsubA = new PubsubDatastore(pubsubA, datastoreA, peerIdA, smoothValidator)
-    const dsPubsubB = new PubsubDatastore(pubsubB, datastoreB, peerIdB, customValidator)
+    const dsPubsubA = new PubSubDatastore(pubsubA, datastoreA, peerIdA, smoothValidator, smoothSelector)
+    const dsPubsubB = new PubSubDatastore(pubsubB, datastoreB, peerIdB, smoothValidator, customSelector)
     const subsTopic = keyToTopic(`/${keyRef}`)
     let receivedMessage = false
 
@@ -360,7 +344,7 @@ describe('datastore-pubsub', function () {
     await waitForPeerToSubscribe(subsTopic, peerIdB, pubsubA)
 
     // subscribe in order to understand when the message arrive to the node
-    await pubsubB.on(subsTopic, messageHandler)
+    await pubsubB.addEventListener(subsTopic, messageHandler)
     await pubsubB.subscribe(subsTopic)
     await dsPubsubA.put(key, serializedRecord)
 
@@ -374,26 +358,17 @@ describe('datastore-pubsub', function () {
     // get from datastore
     // message was discarded as a result of no validator available
     const result = await dsPubsubB.get(key)
-    const receivedRecord = Record.deserialize(result)
+    const receivedRecord = Libp2pRecord.deserialize(result)
     expect(receivedRecord.value.toString()).to.not.equal(newValue) // not equal to the last value
   })
 
   it('should get the new record if the selector selects it as the newest one', async () => {
-    const customValidator = {
-      validate: () => {
-        return Promise.resolve()
-      },
-      select: () => {
-        return 0 // received record is the newer
-      }
-    }
-
     const newValue = 'new value'
-    const record = new Record(key, uint8ArrayFromString(newValue))
+    const record = new Libp2pRecord(key, uint8ArrayFromString(newValue), new Date())
     const newSerializedRecord = record.serialize()
 
-    const dsPubsubA = new PubsubDatastore(pubsubA, datastoreA, peerIdA, smoothValidator)
-    const dsPubsubB = new PubsubDatastore(pubsubB, datastoreB, peerIdB, customValidator)
+    const dsPubsubA = new PubSubDatastore(pubsubA, datastoreA, peerIdA, smoothValidator, smoothSelector)
+    const dsPubsubB = new PubSubDatastore(pubsubB, datastoreB, peerIdB, smoothValidator, smoothSelector)
     const subsTopic = keyToTopic(`/${keyRef}`)
     let receivedMessage = false
 
@@ -411,7 +386,7 @@ describe('datastore-pubsub', function () {
     await waitForPeerToSubscribe(subsTopic, peerIdB, pubsubA)
 
     // subscribe in order to understand when the message arrive to the node
-    await pubsubB.on(subsTopic, messageHandler)
+    await pubsubB.addEventListener(subsTopic, messageHandler)
     await pubsubB.subscribe(subsTopic)
     await dsPubsubA.put(key, serializedRecord)
 
@@ -431,10 +406,10 @@ describe('datastore-pubsub', function () {
     const result = await dsPubsubB.get(key)
 
     // message was discarded as a result of no validator available
-    const receivedRecord = Record.deserialize(result)
+    const receivedRecord = Libp2pRecord.deserialize(result)
 
     // equal to the last value
-    expect(receivedRecord.value.toString()).to.equal(newValue)
+    expect(uint8ArrayToString(receivedRecord.value)).to.equal(newValue)
   })
 
   it('should subscribe the topic and after a message being received, discard it using the subscriptionKeyFn', async () => {
@@ -443,8 +418,8 @@ describe('datastore-pubsub', function () {
       expect(uint8ArrayToString(key)).to.equal(`/${keyRef}`)
       throw new Error('DISCARD MESSAGE')
     }
-    const dsPubsubA = new PubsubDatastore(pubsubA, datastoreA, peerIdA, smoothValidator)
-    const dsPubsubB = new PubsubDatastore(pubsubB, datastoreB, peerIdB, smoothValidator, subscriptionKeyFn)
+    const dsPubsubA = new PubSubDatastore(pubsubA, datastoreA, peerIdA, smoothValidator, smoothSelector)
+    const dsPubsubB = new PubSubDatastore(pubsubB, datastoreB, peerIdB, smoothValidator, smoothSelector, subscriptionKeyFn)
     const subsTopic = keyToTopic(`/${keyRef}`)
     let receivedMessage = false
 
@@ -465,7 +440,7 @@ describe('datastore-pubsub', function () {
     await waitForPeerToSubscribe(subsTopic, peerIdB, pubsubA)
 
     // subscribe in order to understand when the message arrive to the node
-    await pubsubB.on(subsTopic, messageHandler)
+    await pubsubB.addEventListener(subsTopic, messageHandler)
     await pubsubB.subscribe(subsTopic)
     await dsPubsubA.put(key, serializedRecord)
 
@@ -488,8 +463,8 @@ describe('datastore-pubsub', function () {
       expect(uint8ArrayToString(key)).to.equal(`/${keyRef}`)
       return Promise.resolve(topicToKey(`${keyToTopic(key)}new`))
     }
-    const dsPubsubA = new PubsubDatastore(pubsubA, datastoreA, peerIdA, smoothValidator)
-    const dsPubsubB = new PubsubDatastore(pubsubB, datastoreB, peerIdB, smoothValidator, subscriptionKeyFn)
+    const dsPubsubA = new PubSubDatastore(pubsubA, datastoreA, peerIdA, smoothValidator, smoothSelector)
+    const dsPubsubB = new PubSubDatastore(pubsubB, datastoreB, peerIdB, smoothValidator, smoothSelector, subscriptionKeyFn)
     const subsTopic = keyToTopic(`/${keyRef}`)
     const keyNew = topicToKey(`${keyToTopic(key)}new`)
     let receivedMessage = false
@@ -511,7 +486,7 @@ describe('datastore-pubsub', function () {
     await waitForPeerToSubscribe(subsTopic, peerIdB, pubsubA)
 
     // subscribe in order to understand when the message arrive to the node
-    pubsubB.on(subsTopic, messageHandler)
+    pubsubB.addEventListener(subsTopic, messageHandler)
     await pubsubB.subscribe(subsTopic)
     await dsPubsubA.put(key, serializedRecord)
 
@@ -520,45 +495,31 @@ describe('datastore-pubsub', function () {
 
     // get from datastore
     const result = await dsPubsubB.get(keyNew)
-    const receivedRecord = Record.deserialize(result)
+    const receivedRecord = Libp2pRecord.deserialize(result)
     expect(uint8ArrayToString(receivedRecord.value)).to.equal(value)
   })
 
   it('should subscribe a topic only once', async () => {
-    const dsPubsubA = new PubsubDatastore(pubsubA, datastoreA, peerIdA, smoothValidator)
+    const dsPubsubA = new PubSubDatastore(pubsubA, datastoreA, peerIdA, smoothValidator, smoothSelector)
 
-    sinon.spy(pubsubA, 'subscribe')
+    const addEventListenerSpy = sinon.spy(pubsubA, 'addEventListener')
 
-    // causes pubsub b to become subscribed to the topic
-    await dsPubsubA.get(key)
-      .then(() => expect.fail('Should have failed to fetch key'), (err) => {
-        // not locally stored record
-        expect(err.code).to.equal('ERR_NOT_FOUND')
-      })
+    // fails but causes pubsub b to become subscribed to the topic
+    await expect(dsPubsubA.get(key)).to.eventually.be.rejected().with.property('code', 'ERR_NOT_FOUND')
 
     // causes pubsub b to become subscribed to the topic
-    await dsPubsubA.get(key)
-      .then(() => expect.fail('Should have failed to fetch key'), (err) => {
-        // not locally stored record
-        expect(err.code).to.equal('ERR_NOT_FOUND')
-      })
+    await expect(dsPubsubA.get(key)).to.eventually.be.rejected().with.property('code', 'ERR_NOT_FOUND')
 
-    // @ts-ignore sinon added property
-    expect(pubsubA.subscribe.calledOnce).to.equal(true)
+    expect(addEventListenerSpy.calledOnce).to.equal(true)
   })
 
   it('should handle a unexpected error properly when getting from the datastore', async () => {
-    const dsPubsubA = new PubsubDatastore(pubsubA, datastoreA, peerIdA, smoothValidator)
+    const dsPubsubA = new PubSubDatastore(pubsubA, datastoreA, peerIdA, smoothValidator, smoothSelector)
     const stub = sinon.stub(dsPubsubA._datastore, 'get').throws(errcode(new Error('Wut'), 'RANDOM_ERR'))
 
     // causes pubsub b to become subscribed to the topic
-    await dsPubsubA.get(key)
-      .then(() => expect.fail('Should have failed to fetch key'), (err) => {
-        // not locally stored record
-        expect(err.code).to.equal('ERR_UNEXPECTED_ERROR_GETTING_RECORD')
-      })
-      .finally(() => {
-        stub.restore()
-      })
+    await expect(dsPubsubA.get(key)).to.eventually.be.rejected().with.property('code', 'ERR_UNEXPECTED_ERROR_GETTING_RECORD')
+
+    stub.restore()
   })
 })
