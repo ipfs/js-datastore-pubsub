@@ -1,3 +1,14 @@
+## [3.0.0](https://github.com/ipfs/js-datastore-pubsub/compare/v2.0.0...v3.0.0) (2022-04-19)
+
+
+### ⚠ BREAKING CHANGES
+
+* this module is now ESM-only
+
+### Bug Fixes
+
+* update to esm libp2p ([#142](https://github.com/ipfs/js-datastore-pubsub/issues/142)) ([576279a](https://github.com/ipfs/js-datastore-pubsub/commit/576279ae0202ecacf983250f0f753e61c2139128))
+
 ## [2.0.0](https://github.com/ipfs/js-datastore-pubsub/compare/v1.0.0...v2.0.0) (2022-01-19)
 
 
