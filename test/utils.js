@@ -1,134 +1,56 @@
-import { duplexPair } from 'it-pair/duplex'
 import pWaitFor from 'p-wait-for'
-import { Gossipsub } from '@achingbrain/libp2p-gossipsub'
+import { GossipSub } from '@achingbrain/libp2p-gossipsub'
 import { createEd25519PeerId } from '@libp2p/peer-id-factory'
+import { connectionPair, mockRegistrar, mockConnectionManager } from '@libp2p/interface-compliance-tests/mocks'
 import { Components } from '@libp2p/interfaces/components'
+import { MemoryDatastore } from 'datastore-core'
 
-const { multicodec } = Gossipsub
+const { multicodec } = GossipSub
 
 /**
- * @typedef {import('@libp2p/interfaces/pubsub').PubSub} Pubsub
+ * @typedef {import('@libp2p/interfaces/pubsub').PubSub} PubSub
  * @typedef {import('@libp2p/interfaces/peer-id').PeerId} PeerId
  */
 
 /**
- * @param {Record<string, any>} registrarRecord
- */
-const createMockRegistrar = (registrarRecord) => {
-  return {
-    /** @type {import('libp2p').Libp2p["handle"]} */
-    handle: async (multicodecs, handler) => {
-      const rec = registrarRecord[multicodecs[0]] || {}
-
-      registrarRecord[multicodecs[0]] = {
-        ...rec,
-        handler
-      }
-    },
-    /** @type {import('libp2p').Libp2p["unhandle"]} */
-    unhandle: async (multicodecs) => {
-      delete registrarRecord[multicodecs[0]]
-    },
-    /**
-     * @param {string[]} multicodecs
-     * @param {import('@libp2p/interfaces/topology').Topology} topology
-     */
-    register: async (multicodecs, topology) => {
-      const { onConnect, onDisconnect } = topology
-
-      const rec = registrarRecord[multicodecs[0]] || {}
-
-      registrarRecord[multicodecs[0]] = {
-        ...rec,
-        onConnect,
-        onDisconnect
-      }
-
-      return multicodecs[0]
-    },
-    unregister: () => true
-  }
-}
-
-/**
  * As created by libp2p
  *
- * @param {object} registrarRecord
- * @returns {Promise<{ peerId: PeerId, pubsub: Gossipsub }>}
+ * @returns {Promise<Components>}
  */
-export const createPubsubNode = async (registrarRecord) => {
-  const peerId = await createEd25519PeerId()
+export const createComponents = async () => {
+  const components = new Components({
+    peerId: await createEd25519PeerId(),
+    registrar: mockRegistrar(),
+    datastore: new MemoryDatastore(),
+    connectionManager: mockConnectionManager()
+  })
 
-  const libp2p = {
-    peerId,
-    registrar: createMockRegistrar(registrarRecord),
-    connectionManager: {
-      getAll: () => []
-    }
-  }
-
-  // @ts-expect-error just enough libp2p
-  const pubsub = new Gossipsub(libp2p)
-  // @ts-expect-error just enough libp2p
-  pubsub.init(new Components(libp2p))
-
+  const pubsub = new GossipSub({
+    emitSelf: true,
+    allowPublishToZeroPeers: true
+  })
+  pubsub.init(components)
   await pubsub.start()
 
-  return {
-    pubsub,
-    peerId
-  }
-}
+  components.setPubSub(pubsub)
 
-const ConnectionPair = () => {
-  const [d0, d1] = duplexPair()
-
-  return [
-    {
-      stream: d0,
-      newStream: () => Promise.resolve({ stream: d0 })
-    },
-    {
-      stream: d1,
-      newStream: () => Promise.resolve({ stream: d1 })
-    }
-  ]
+  return components
 }
 
 /**
- * @typedef {object} Connectable
- * @property {Pubsub} router
- * @property {any} registrar
- * @property {PeerId} peerId
  *
- * @param {Connectable} pubsubA
- * @param {Connectable} pubsubB
+ * @param {Components} componentsA
+ * @param {Components} componentsB
  */
-export const connectPubsubNodes = async (pubsubA, pubsubB) => {
-  const onConnectA = pubsubA.registrar[multicodec].onConnect
-  const onConnectB = pubsubB.registrar[multicodec].onConnect
-  const handleA = pubsubA.registrar[multicodec].handler
-  const handleB = pubsubB.registrar[multicodec].handler
+export const connectPubsubNodes = async (componentsA, componentsB) => {
+  // Notify peers of connection
+  const [c0, c1] = connectionPair(componentsA, componentsB)
 
-  // Notice peers of connection
-  const [c0, c1] = ConnectionPair()
-  await onConnectA(pubsubB.peerId, c0)
-  await onConnectB(pubsubA.peerId, c1)
-
-  await handleB({
-    protocol: multicodec,
-    stream: c1.stream,
-    connection: {
-      remotePeer: pubsubA.peerId
-    }
+  componentsA.getRegistrar().getTopologies(multicodec).forEach(topology => {
+    topology.onConnect(componentsB.getPeerId(), c0)
   })
-
-  await handleA({
-    protocol: multicodec,
-    stream: c0.stream,
-    connection: {
-      remotePeer: pubsubB.peerId
-    }
+  componentsB.getRegistrar().getTopologies(multicodec).forEach(topology => {
+    topology.onConnect(componentsA.getPeerId(), c1)
   })
 }
 
@@ -137,14 +59,14 @@ export const connectPubsubNodes = async (pubsubA, pubsubB) => {
  *
  * @param {() => boolean} predicate
  */
-export const waitFor = predicate => pWaitFor(predicate, { interval: 1000, timeout: 10000 })
+export const waitFor = predicate => pWaitFor(predicate, { interval: 100, timeout: 10000 })
 
 /**
  * Wait until a peer subscribes a topic
  *
  * @param {string} topic
  * @param {PeerId} peer
- * @param {Pubsub} node
+ * @param {PubSub} node
  */
 export const waitForPeerToSubscribe = (topic, peer, node) => {
   return pWaitFor(async () => {
@@ -156,7 +78,7 @@ export const waitForPeerToSubscribe = (topic, peer, node) => {
 
     return false
   }, {
-    interval: 1000,
+    interval: 100,
     timeout: 5000
   })
 }

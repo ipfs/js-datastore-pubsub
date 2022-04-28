@@ -8,10 +8,9 @@ import { toString as uint8ArrayToString } from 'uint8arrays/to-string'
 import { fromString as uint8ArrayFromString } from 'uint8arrays/from-string'
 import { PubSubDatastore } from '../src/index.js'
 import { Key } from 'interface-datastore'
-import { MemoryDatastore } from 'datastore-core'
 import {
-  createPubsubNode,
   connectPubsubNodes,
+  createComponents,
   waitFor,
   waitForPeerToSubscribe
 } from './utils.js'
@@ -24,6 +23,7 @@ import { keyToTopic, topicToKey } from '../src/utils.js'
  * @typedef {import('@libp2p/interfaces/peer-id').PeerId} PeerId
  * @typedef {import('@libp2p/interfaces/dht').ValidateFn} Validator
  * @typedef {import('../src/types').SubscriptionKeyFn} SubscriptionKeyFn
+ * @typedef {import('@libp2p/interfaces/components').Components} Components
  */
 
 // Always returning the expected values
@@ -41,48 +41,38 @@ describe('datastore-pubsub', function () {
 
   if (!isNode) return
 
+  /** @type {Components} */
+  let componentsA
   /** @type {PubSub} */
   let pubsubA
   /** @type {Datastore} */
   let datastoreA
   /** @type {PeerId} */
   let peerIdA
-  const registrarRecordA = {}
 
+  /** @type {Components} */
+  let componentsB
   /** @type {PubSub} */
   let pubsubB
   /** @type {Datastore} */
   let datastoreB
   /** @type {PeerId} */
   let peerIdB
-  const registrarRecordB = {}
 
   // Mount pubsub protocol and create datastore instances
-  before(async () => {
-    const [a, b] = await Promise.all([
-      createPubsubNode(registrarRecordA),
-      createPubsubNode(registrarRecordB)
-    ])
-    peerIdA = a.peerId
-    peerIdB = b.peerId
+  beforeEach(async () => {
+    componentsA = await createComponents()
+    componentsB = await createComponents()
 
-    pubsubA = a.pubsub
-    pubsubB = b.pubsub
+    await connectPubsubNodes(componentsA, componentsB)
 
-    await connectPubsubNodes(
-      {
-        peerId: peerIdA,
-        router: pubsubA,
-        registrar: registrarRecordA
-      },
-      {
-        peerId: peerIdB,
-        router: pubsubB,
-        registrar: registrarRecordB
-      })
+    pubsubA = componentsA.getPubSub()
+    datastoreA = componentsA.getDatastore()
+    peerIdA = componentsA.getPeerId()
 
-    datastoreA = new MemoryDatastore()
-    datastoreB = new MemoryDatastore()
+    pubsubB = componentsB.getPubSub()
+    datastoreB = componentsB.getDatastore()
+    peerIdB = componentsB.getPeerId()
   })
 
   const value = 'value'
@@ -108,7 +98,7 @@ describe('datastore-pubsub', function () {
     ++testCounter
   })
 
-  after(() => {
+  afterEach(() => {
     return Promise.all([
       pubsubA.stop(),
       pubsubB.stop()
@@ -163,17 +153,17 @@ describe('datastore-pubsub', function () {
     const subsTopic = keyToTopic(`/${keyRef}`)
     let receivedMessage = false
 
-    function messageHandler () {
-      receivedMessage = true
-    }
-
     // causes pubsub b to become subscribed to the topic
     await expect(dsPubsubB.get(key)).to.eventually.be.rejected().with.property('code', 'ERR_NOT_FOUND')
 
     await waitForPeerToSubscribe(subsTopic, peerIdB, pubsubA)
 
     // subscribe in order to understand when the message arrive to the node
-    pubsubB.addEventListener(subsTopic, messageHandler)
+    pubsubB.addEventListener('message', (evt) => {
+      if (evt.detail.topic === subsTopic) {
+        receivedMessage = true
+      }
+    })
     await pubsubB.subscribe(subsTopic)
 
     await dsPubsubA.put(key, serializedRecord)
@@ -193,10 +183,6 @@ describe('datastore-pubsub', function () {
     const subsTopic = keyToTopic(`/${keyRef}`)
     let receivedMessage = false
 
-    function messageHandler () {
-      receivedMessage = true
-    }
-
     const res = await pubsubB.getTopics()
     expect(res).to.exist()
     expect(res).to.not.include(subsTopic) // not subscribed
@@ -211,7 +197,11 @@ describe('datastore-pubsub', function () {
     await waitForPeerToSubscribe(subsTopic, peerIdB, pubsubA)
 
     // subscribe in order to understand when the message arrive to the node
-    pubsubB.addEventListener(subsTopic, messageHandler)
+    pubsubB.addEventListener('message', (evt) => {
+      if (evt.detail.topic === subsTopic) {
+        receivedMessage = true
+      }
+    })
     await pubsubB.subscribe(subsTopic)
     await dsPubsubA.put(key, serializedRecord)
 
@@ -285,10 +275,6 @@ describe('datastore-pubsub', function () {
     const subsTopic = keyToTopic(`/${keyRef}`)
     let receivedMessage = false
 
-    function messageHandler () {
-      receivedMessage = true
-    }
-
     // causes pubsub b to become subscribed to the topic
     await dsPubsubB.get(key)
       .then(() => expect.fail('Should have failed to fetch key'), (err) => {
@@ -299,7 +285,11 @@ describe('datastore-pubsub', function () {
     await waitForPeerToSubscribe(subsTopic, peerIdB, pubsubA)
 
     // subscribe in order to understand when the message arrive to the node
-    await pubsubB.addEventListener(subsTopic, messageHandler)
+    pubsubB.addEventListener('message', (evt) => {
+      if (evt.detail.topic === subsTopic) {
+        receivedMessage = true
+      }
+    })
     await pubsubB.subscribe(subsTopic)
     await dsPubsubA.put(key, serializedRecord)
 
@@ -330,10 +320,6 @@ describe('datastore-pubsub', function () {
     const subsTopic = keyToTopic(`/${keyRef}`)
     let receivedMessage = false
 
-    function messageHandler () {
-      receivedMessage = true
-    }
-
     // causes pubsub b to become subscribed to the topic
     await dsPubsubB.get(key)
       .then(() => expect.fail('Should have failed to fetch key'), (err) => {
@@ -344,7 +330,11 @@ describe('datastore-pubsub', function () {
     await waitForPeerToSubscribe(subsTopic, peerIdB, pubsubA)
 
     // subscribe in order to understand when the message arrive to the node
-    await pubsubB.addEventListener(subsTopic, messageHandler)
+    pubsubB.addEventListener('message', (evt) => {
+      if (evt.detail.topic === subsTopic) {
+        receivedMessage = true
+      }
+    })
     await pubsubB.subscribe(subsTopic)
     await dsPubsubA.put(key, serializedRecord)
 
@@ -372,10 +362,6 @@ describe('datastore-pubsub', function () {
     const subsTopic = keyToTopic(`/${keyRef}`)
     let receivedMessage = false
 
-    function messageHandler () {
-      receivedMessage = true
-    }
-
     // causes pubsub b to become subscribed to the topic
     await dsPubsubB.get(key)
       .then(() => expect.fail('Should have failed to fetch key'), (err) => {
@@ -386,7 +372,11 @@ describe('datastore-pubsub', function () {
     await waitForPeerToSubscribe(subsTopic, peerIdB, pubsubA)
 
     // subscribe in order to understand when the message arrive to the node
-    await pubsubB.addEventListener(subsTopic, messageHandler)
+    pubsubB.addEventListener('message', (evt) => {
+      if (evt.detail.topic === subsTopic) {
+        receivedMessage = true
+      }
+    })
     await pubsubB.subscribe(subsTopic)
     await dsPubsubA.put(key, serializedRecord)
 
@@ -423,10 +413,6 @@ describe('datastore-pubsub', function () {
     const subsTopic = keyToTopic(`/${keyRef}`)
     let receivedMessage = false
 
-    function messageHandler () {
-      receivedMessage = true
-    }
-
     const res = await pubsubB.getTopics()
     expect(res).to.not.include(subsTopic) // not subscribed
 
@@ -440,7 +426,11 @@ describe('datastore-pubsub', function () {
     await waitForPeerToSubscribe(subsTopic, peerIdB, pubsubA)
 
     // subscribe in order to understand when the message arrive to the node
-    await pubsubB.addEventListener(subsTopic, messageHandler)
+    pubsubB.addEventListener('message', (evt) => {
+      if (evt.detail.topic === subsTopic) {
+        receivedMessage = true
+      }
+    })
     await pubsubB.subscribe(subsTopic)
     await dsPubsubA.put(key, serializedRecord)
 
@@ -469,10 +459,6 @@ describe('datastore-pubsub', function () {
     const keyNew = topicToKey(`${keyToTopic(key)}new`)
     let receivedMessage = false
 
-    function messageHandler () {
-      receivedMessage = true
-    }
-
     const res = await pubsubB.getTopics()
     expect(res).to.not.include(subsTopic) // not subscribed
 
@@ -486,7 +472,11 @@ describe('datastore-pubsub', function () {
     await waitForPeerToSubscribe(subsTopic, peerIdB, pubsubA)
 
     // subscribe in order to understand when the message arrive to the node
-    pubsubB.addEventListener(subsTopic, messageHandler)
+    pubsubB.addEventListener('message', (evt) => {
+      if (evt.detail.topic === subsTopic) {
+        receivedMessage = true
+      }
+    })
     await pubsubB.subscribe(subsTopic)
     await dsPubsubA.put(key, serializedRecord)
 
@@ -500,9 +490,8 @@ describe('datastore-pubsub', function () {
   })
 
   it('should subscribe a topic only once', async () => {
-    const dsPubsubA = new PubSubDatastore(pubsubA, datastoreA, peerIdA, smoothValidator, smoothSelector)
-
     const addEventListenerSpy = sinon.spy(pubsubA, 'addEventListener')
+    const dsPubsubA = new PubSubDatastore(pubsubA, datastoreA, peerIdA, smoothValidator, smoothSelector)
 
     // fails but causes pubsub b to become subscribed to the topic
     await expect(dsPubsubA.get(key)).to.eventually.be.rejected().with.property('code', 'ERR_NOT_FOUND')
