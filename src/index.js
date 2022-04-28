@@ -4,7 +4,6 @@ import { encodeBase32, keyToTopic, topicToKey } from './utils.js'
 import { equals as uint8ArrayEquals } from 'uint8arrays/equals'
 import errcode from 'err-code'
 import { logger } from '@libp2p/logger'
-import { CustomEvent } from '@libp2p/interfaces'
 
 const log = logger('datastore-pubsub:publisher')
 
@@ -56,6 +55,7 @@ export class PubSubDatastore extends BaseDatastore {
 
     // Bind _onMessage function, which is called by pubsub.
     this._onMessage = this._onMessage.bind(this)
+    this._pubsub.addEventListener('message', this._onMessage)
   }
 
   /**
@@ -85,7 +85,7 @@ export class PubSubDatastore extends BaseDatastore {
     log(`publish value for topic ${stringifiedTopic}`)
 
     // Publish record to pubsub
-    await this._pubsub.dispatchEvent(new CustomEvent(stringifiedTopic, { detail: val }))
+    await this._pubsub.publish(stringifiedTopic, val)
   }
 
   /**
@@ -112,7 +112,6 @@ export class PubSubDatastore extends BaseDatastore {
 
     // subscribe
     try {
-      this._pubsub.addEventListener(stringifiedTopic, this._onMessage)
       await this._pubsub.subscribe(stringifiedTopic)
     } catch (/** @type {any} */ err) {
       const errMsg = `cannot subscribe topic ${stringifiedTopic}`
@@ -134,7 +133,6 @@ export class PubSubDatastore extends BaseDatastore {
   unsubscribe (key) {
     const stringifiedTopic = keyToTopic(key)
 
-    this._pubsub.removeEventListener(stringifiedTopic, this._onMessage)
     return this._pubsub.unsubscribe(stringifiedTopic)
   }
 
