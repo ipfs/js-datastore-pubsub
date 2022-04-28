@@ -143,7 +143,7 @@ describe('datastore-pubsub', function () {
 
   it('should validate if record content is the same', async () => {
     /** @type {Validator} */
-    const customValidator = async (data) => {
+    const customValidator = async (key, data) => {
       const receivedRecord = Libp2pRecord.deserialize(data)
 
       expect(uint8ArrayToString(receivedRecord.value)).to.equal(value) // validator should deserialize correctly

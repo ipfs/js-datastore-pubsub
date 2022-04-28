@@ -241,11 +241,11 @@ export class PubSubDatastore extends BaseDatastore {
   /**
    * Validate record according to the received validation function
    *
+   * @param {Uint8Array} key
    * @param {Uint8Array} value
-   * @param {Uint8Array} peerId
    */
-  async _validateRecord (value, peerId) { // eslint-disable-line require-await
-    return this._validator(value, peerId)
+  async _validateRecord (key, value) { // eslint-disable-line require-await
+    return this._validator(key, value)
   }
 
   /**
@@ -269,7 +269,7 @@ export class PubSubDatastore extends BaseDatastore {
    */
   async _isBetter (key, val) {
     try {
-      await this._validateRecord(val, key)
+      await this._validateRecord(key, val)
     } catch (/** @type {any} */ err) {
       // If not valid, it is not better than the one currently available
       const errMsg = 'record received through pubsub is not valid'
