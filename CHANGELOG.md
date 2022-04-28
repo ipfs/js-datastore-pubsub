@@ -1,3 +1,10 @@
+### [3.0.2](https://github.com/ipfs/js-datastore-pubsub/compare/v3.0.1...v3.0.2) (2022-04-28)
+
+
+### Bug Fixes
+
+* reverse validator args ([#145](https://github.com/ipfs/js-datastore-pubsub/issues/145)) ([a2bc9ff](https://github.com/ipfs/js-datastore-pubsub/commit/a2bc9ff9fcf6fe4cf520fca3305bdf14b1e71534))
+
 ### [3.0.1](https://github.com/ipfs/js-datastore-pubsub/compare/v3.0.0...v3.0.1) (2022-04-28)
 
 
