@@ -1,3 +1,10 @@
+### [3.0.1](https://github.com/ipfs/js-datastore-pubsub/compare/v3.0.0...v3.0.1) (2022-04-28)
+
+
+### Bug Fixes
+
+* update interfaces ([#144](https://github.com/ipfs/js-datastore-pubsub/issues/144)) ([47a5114](https://github.com/ipfs/js-datastore-pubsub/commit/47a511472c79f956ee8297041f47ae7fa57bbd8b))
+
 ## [3.0.0](https://github.com/ipfs/js-datastore-pubsub/compare/v2.0.0...v3.0.0) (2022-04-19)
 
 
