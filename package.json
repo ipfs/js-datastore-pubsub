@@ -152,7 +152,7 @@
     "dep-check": "aegir dep-check -i rimraf"
   },
   "dependencies": {
-    "@libp2p/interfaces": "^1.3.24",
+    "@libp2p/interfaces": "^2.0.1",
     "@libp2p/logger": "^1.1.4",
     "datastore-core": "^7.0.0",
     "debug": "^4.2.0",
