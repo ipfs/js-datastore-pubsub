@@ -162,7 +162,7 @@
   },
   "devDependencies": {
     "@achingbrain/libp2p-gossipsub": "^0.13.5",
-    "@libp2p/interface-compliance-tests": "^1.1.27",
+    "@libp2p/interface-compliance-tests": "^2.0.1",
     "@libp2p/peer-id-factory": "^1.0.9",
     "@libp2p/record": "^1.0.4",
     "@types/detect-node": "^2.0.0",
