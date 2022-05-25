@@ -1,5 +1,5 @@
 import pWaitFor from 'p-wait-for'
-import { GossipSub } from '@achingbrain/libp2p-gossipsub'
+import { GossipSub } from '@chainsafe/libp2p-gossipsub'
 import { createEd25519PeerId } from '@libp2p/peer-id-factory'
 import { connectionPair, mockRegistrar, mockConnectionManager } from '@libp2p/interface-compliance-tests/mocks'
 import { Components } from '@libp2p/interfaces/components'

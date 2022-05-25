@@ -160,7 +160,7 @@
     "uint8arrays": "^3.0.0"
   },
   "devDependencies": {
-    "@achingbrain/libp2p-gossipsub": "^0.13.5",
+    "@chainsafe/libp2p-gossipsub": "^1.0.1",
     "@libp2p/interface-compliance-tests": "^2.0.3",
     "@libp2p/interfaces": "^2.0.2",
     "@libp2p/peer-id-factory": "^1.0.9",
