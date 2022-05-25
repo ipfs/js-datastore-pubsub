@@ -16,6 +16,7 @@ import {
 } from './utils.js'
 import { Libp2pRecord } from '@libp2p/record'
 import { keyToTopic, topicToKey } from '../src/utils.js'
+import { stop } from '@libp2p/interfaces/startable'
 
 /**
  * @typedef {import('@libp2p/interfaces/pubsub').PubSub} PubSub
@@ -100,8 +101,8 @@ describe('datastore-pubsub', function () {
 
   afterEach(() => {
     return Promise.all([
-      pubsubA.stop(),
-      pubsubB.stop()
+      stop(pubsubA),
+      stop(pubsubB)
     ])
   })
 
