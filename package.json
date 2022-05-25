@@ -1,6 +1,6 @@
 {
   "name": "datastore-pubsub",
-  "version": "3.0.2",
+  "version": "3.0.3",
   "description": "Responsible for providing an interface-datastore compliant api to pubsub",
   "author": "Vasco Santos <vasco.santos@moxy.studio>",
   "license": "Apache-2.0 OR MIT",
