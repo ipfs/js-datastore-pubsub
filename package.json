@@ -164,7 +164,7 @@
     "@libp2p/interface-compliance-tests": "^2.0.3",
     "@libp2p/interfaces": "^2.0.2",
     "@libp2p/peer-id-factory": "^1.0.9",
-    "@libp2p/record": "^1.0.4",
+    "@libp2p/record": "^2.0.0",
     "@types/detect-node": "^2.0.0",
     "aegir": "^37.0.13",
     "detect-node": "^2.0.4",
