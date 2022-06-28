@@ -1,15 +1,13 @@
 import pWaitFor from 'p-wait-for'
-import { GossipSub } from '@chainsafe/libp2p-gossipsub'
+import { FloodSub, multicodec } from '@libp2p/floodsub'
 import { createEd25519PeerId } from '@libp2p/peer-id-factory'
-import { connectionPair, mockRegistrar, mockConnectionManager } from '@libp2p/interface-compliance-tests/mocks'
-import { Components } from '@libp2p/interfaces/components'
+import { connectionPair, mockRegistrar, mockConnectionManager } from '@libp2p/interface-mocks'
+import { Components } from '@libp2p/components'
 import { MemoryDatastore } from 'datastore-core'
 
-const { multicodec } = GossipSub
-
 /**
- * @typedef {import('@libp2p/interfaces/pubsub').PubSub} PubSub
- * @typedef {import('@libp2p/interfaces/peer-id').PeerId} PeerId
+ * @typedef {import('@libp2p/interface-pubsub').PubSub} PubSub
+ * @typedef {import('@libp2p/interface-peer-id').PeerId} PeerId
  */
 
 /**
@@ -25,9 +23,8 @@ export const createComponents = async () => {
     connectionManager: mockConnectionManager()
   })
 
-  const pubsub = new GossipSub({
-    emitSelf: true,
-    allowPublishToZeroPeers: true
+  const pubsub = new FloodSub({
+    emitSelf: true
   })
   pubsub.init(components)
   await pubsub.start()

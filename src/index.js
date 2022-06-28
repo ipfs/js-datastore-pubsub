@@ -8,9 +8,9 @@ import { logger } from '@libp2p/logger'
 const log = logger('datastore-pubsub:publisher')
 
 /**
- * @typedef {import('@libp2p/interfaces/peer-id').PeerId} PeerId
+ * @typedef {import('@libp2p/interface-peer-id').PeerId} PeerId
  * @typedef {import('./types').SubscriptionKeyFn} SubscriptionKeyFn
- * @typedef {import('@libp2p/interfaces/pubsub').Message} PubSubMessage
+ * @typedef {import('@libp2p/interface-pubsub').Message} PubSubMessage
  */
 
 // DatastorePubsub is responsible for providing an api for pubsub to be used as a datastore with
@@ -19,11 +19,11 @@ export class PubSubDatastore extends BaseDatastore {
   /**
    * Creates an instance of DatastorePubsub.
    *
-   * @param {import('@libp2p/interfaces/pubsub').PubSub} pubsub - pubsub implementation
+   * @param {import('@libp2p/interface-pubsub').PubSub} pubsub - pubsub implementation
    * @param {import('interface-datastore').Datastore} datastore - datastore instance
    * @param {PeerId} peerId - peer-id instance
-   * @param {import('@libp2p/interfaces/dht').ValidateFn} validator - validator function
-   * @param {import('@libp2p/interfaces/dht').SelectFn} selector - selector function
+   * @param {import('@libp2p/interface-dht').ValidateFn} validator - validator function
+   * @param {import('@libp2p/interface-dht').SelectFn} selector - selector function
    * @param {SubscriptionKeyFn} [subscriptionKeyFn] - function to manipulate the key topic received before processing it
    * @memberof DatastorePubsub
    */
