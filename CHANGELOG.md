@@ -1,3 +1,14 @@
+## [4.0.0](https://github.com/ipfs/js-datastore-pubsub/compare/v3.0.3...v4.0.0) (2022-06-28)
+
+
+### ⚠ BREAKING CHANGES
+
+* uses new libp2p deps
+
+### Bug Fixes
+
+* update libp2p deps ([#163](https://github.com/ipfs/js-datastore-pubsub/issues/163)) ([83bc9a6](https://github.com/ipfs/js-datastore-pubsub/commit/83bc9a619f45d0bf3d761a8865d0a738e2367e6d))
+
 ### [3.0.3](https://github.com/ipfs/js-datastore-pubsub/compare/v3.0.2...v3.0.3) (2022-05-25)
 
 
