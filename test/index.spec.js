@@ -19,12 +19,12 @@ import { keyToTopic, topicToKey } from '../src/utils.js'
 import { stop } from '@libp2p/interfaces/startable'
 
 /**
- * @typedef {import('@libp2p/interfaces/pubsub').PubSub} PubSub
+ * @typedef {import('@libp2p/interface-pubsub').PubSub} PubSub
  * @typedef {import('interface-datastore').Datastore} Datastore
- * @typedef {import('@libp2p/interfaces/peer-id').PeerId} PeerId
- * @typedef {import('@libp2p/interfaces/dht').ValidateFn} Validator
+ * @typedef {import('@libp2p/interface-peer-id').PeerId} PeerId
+ * @typedef {import('@libp2p/interface-dht').ValidateFn} Validator
  * @typedef {import('../src/types').SubscriptionKeyFn} SubscriptionKeyFn
- * @typedef {import('@libp2p/interfaces/components').Components} Components
+ * @typedef {import('@libp2p/components').Components} Components
  */
 
 // Always returning the expected values
