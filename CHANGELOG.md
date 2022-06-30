@@ -1,3 +1,10 @@
+## [4.0.1](https://github.com/ipfs/js-datastore-pubsub/compare/v4.0.0...v4.0.1) (2022-06-30)
+
+
+### Bug Fixes
+
+* accept abort options ([#164](https://github.com/ipfs/js-datastore-pubsub/issues/164)) ([2ebc7ad](https://github.com/ipfs/js-datastore-pubsub/commit/2ebc7adc1911015ecb113ed81e30fdfc38503472))
+
 ## [4.0.0](https://github.com/ipfs/js-datastore-pubsub/compare/v3.0.3...v4.0.0) (2022-06-28)
 
 
