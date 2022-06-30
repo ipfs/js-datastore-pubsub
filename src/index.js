@@ -64,9 +64,10 @@ export class PubSubDatastore extends BaseDatastore {
    *
    * @param {Uint8Array} key - identifier of the value to be published.
    * @param {Uint8Array} val - value to be propagated.
+   * @param {AbortOptions} [options]
    */
   // @ts-ignore Datastores take keys as Keys, this one takes Uint8Arrays
-  async put (key, val) {
+  async put (key, val, options) {
     if (!(key instanceof Uint8Array)) {
       const errMsg = 'datastore key does not have a valid format'
 
@@ -93,9 +94,10 @@ export class PubSubDatastore extends BaseDatastore {
    * Try to subscribe a topic with Pubsub and returns the local value if available.
    *
    * @param {Uint8Array} key - identifier of the value to be subscribed.
+   * @param {AbortOptions} [options]
    */
   // @ts-ignore Datastores take keys as Keys, this one takes Uint8Arrays
-  async get (key) {
+  async get (key, options) {
     if (!(key instanceof Uint8Array)) {
       const errMsg = 'datastore key does not have a valid format'
 
@@ -108,7 +110,7 @@ export class PubSubDatastore extends BaseDatastore {
 
     // If already subscribed, just try to get it
     if (subscriptions && Array.isArray(subscriptions) && subscriptions.indexOf(stringifiedTopic) > -1) {
-      return this._getLocal(key)
+      return this._getLocal(key, options)
     }
 
     // subscribe
