@@ -154,6 +154,7 @@
   "dependencies": {
     "@libp2p/interface-dht": "^1.0.1",
     "@libp2p/interface-pubsub": "^1.0.4",
+    "@libp2p/interfaces": "^3.0.3",
     "@libp2p/logger": "^2.0.0",
     "datastore-core": "^7.0.0",
     "debug": "^4.2.0",
@@ -166,7 +167,6 @@
     "@libp2p/floodsub": "^3.0.0",
     "@libp2p/interface-compliance-tests": "^3.0.2",
     "@libp2p/interface-mocks": "^3.0.1",
-    "@libp2p/interfaces": "^3.0.3",
     "@libp2p/peer-id-factory": "^1.0.9",
     "@libp2p/record": "^2.0.0",
     "@types/detect-node": "^2.0.0",
