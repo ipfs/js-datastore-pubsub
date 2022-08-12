@@ -1,3 +1,15 @@
+## [4.0.2](https://github.com/ipfs/js-datastore-pubsub/compare/v4.0.1...v4.0.2) (2022-08-12)
+
+
+### Trivial Changes
+
+* Update .github/workflows/stale.yml [skip ci] ([f22c5df](https://github.com/ipfs/js-datastore-pubsub/commit/f22c5df5330c1b8dbb7068da74bbe0d7e8eb4fba))
+
+
+### Dependencies
+
+* update interface-datastore related deps ([#173](https://github.com/ipfs/js-datastore-pubsub/issues/173)) ([9523489](https://github.com/ipfs/js-datastore-pubsub/commit/95234895d7100308ef8f1f302c476def01b09032))
+
 ## [4.0.1](https://github.com/ipfs/js-datastore-pubsub/compare/v4.0.0...v4.0.1) (2022-06-30)
 
 
