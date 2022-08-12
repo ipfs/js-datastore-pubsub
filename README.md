@@ -1,30 +1,31 @@
 # datastore-pubsub <!-- omit in toc -->
 
-[![](https://img.shields.io/badge/made%20by-Protocol%20Labs-blue.svg?style=flat-square)](http://protocol.ai)
-[![](https://img.shields.io/badge/project-IPFS-blue.svg?style=flat-square)](http://ipfs.io/)
-[![](https://img.shields.io/badge/freenode-%23ipfs-blue.svg?style=flat-square)](http://webchat.freenode.net/?channels=%23ipfs)
-[![](https://img.shields.io/codecov/c/github/ipfs/js-datastore-pubsub.svg?style=flat-square)](https://codecov.io/gh/ipfs/js-datastore-pubsub)
-[![Build Status](https://github.com/ipfs/js-datastore-pubsub/actions/workflows/js-test-and-release.yml/badge.svg?branch=master)](https://github.com/ipfs/js-datastore-pubsub/actions/workflows/js-test-and-release.yml)
-[![Dependency Status](https://david-dm.org/ipfs/js-datastore-pubsub.svg?style=flat-square)](https://david-dm.org/ipfs/js-datastore-pubsub)
-[![standard-readme](https://img.shields.io/badge/standard--readme-OK-green.svg?style=flat-square)](https://github.com/RichardLitt/standard-readme)
-[![js-standard-style](https://img.shields.io/badge/code%20style-standard-brightgreen.svg?style=flat-square)](https://github.com/feross/standard)
+[![ipfs.io](https://img.shields.io/badge/project-IPFS-blue.svg?style=flat-square)](http://ipfs.io)
+[![IRC](https://img.shields.io/badge/freenode-%23ipfs-blue.svg?style=flat-square)](http://webchat.freenode.net/?channels=%23ipfs)
+[![Discord](https://img.shields.io/discord/806902334369824788?style=flat-square)](https://discord.gg/ipfs)
+[![codecov](https://img.shields.io/codecov/c/github/ipfs/js-datastore-pubsub.svg?style=flat-square)](https://codecov.io/gh/ipfs/js-datastore-pubsub)
+[![CI](https://img.shields.io/github/workflow/status/ipfs/js-datastore-pubsub/test%20&%20maybe%20release/master?style=flat-square)](https://github.com/ipfs/js-datastore-pubsub/actions/workflows/js-test-and-release.yml)
 
-> provides an implementation of an api for pubsub to be used as a datastore with TieredDatastore
+> Responsible for providing an interface-datastore compliant api to pubsub
 
-## Table of Contents <!-- omit in toc -->
+## Table of contents <!-- omit in toc -->
 
+- [Install](#install)
 - [Usage](#usage)
 - [API](#api)
-    - [Setup](#setup)
+  - - [Setup](#setup)
     - [Get](#get)
     - [Put](#put)
     - [Unsubscribe](#unsubscribe)
 - [Contribute](#contribute)
 - [License](#license)
+- [Contribute](#contribute-1)
 
-### Install
+## Install
 
-> npm install datastore-pubsub
+```console
+$ npm i datastore-pubsub
+```
 
 ## Usage
 
@@ -111,4 +112,15 @@ This repository falls under the IPFS [Code of Conduct](https://github.com/ipfs/c
 
 ## License
 
-Copyright (c) Protocol Labs, Inc. under the **MIT License**. See [LICENSE file](./LICENSE) for details.
+Licensed under either of
+
+- Apache 2.0, ([LICENSE-APACHE](LICENSE-APACHE) / <http://www.apache.org/licenses/LICENSE-2.0>)
+- MIT ([LICENSE-MIT](LICENSE-MIT) / <http://opensource.org/licenses/MIT>)
+
+## Contribute
+
+Feel free to join in. All welcome. Open an [issue](https://github.com/ipfs/js-ipfs-unixfs-importer/issues)!
+
+This repository falls under the IPFS [Code of Conduct](https://github.com/ipfs/community/blob/master/code-of-conduct.md).
+
+[![](https://cdn.rawgit.com/jbenet/contribute-ipfs-gif/master/img/contribute.gif)](https://github.com/ipfs/community/blob/master/CONTRIBUTING.md)

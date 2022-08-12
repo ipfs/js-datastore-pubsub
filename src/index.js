@@ -183,6 +183,12 @@ export class PubSubDatastore extends BaseDatastore {
    */
   async _onMessage (evt) {
     const msg = evt.detail
+
+    if (msg.type !== 'signed') {
+      log.error('unsigned message received, this module can only work with signed messages')
+      return
+    }
+
     const { data, from, topic } = msg
     let key
     try {
