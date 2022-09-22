@@ -178,7 +178,7 @@
     "aegir": "^37.0.13",
     "detect-node": "^2.0.4",
     "install": "^0.13.0",
-    "ipfs-core-types": "^0.11.1",
+    "ipfs-core-types": "^0.12.1",
     "it-pair": "^2.0.2",
     "libp2p": "next",
     "npm": "^8.10.0",
