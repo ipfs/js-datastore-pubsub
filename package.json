@@ -165,7 +165,7 @@
     "debug": "^4.2.0",
     "err-code": "^3.0.1",
     "interface-datastore": "^7.0.0",
-    "uint8arrays": "^3.0.0"
+    "uint8arrays": "^4.0.2"
   },
   "devDependencies": {
     "@libp2p/components": "^2.0.0",
