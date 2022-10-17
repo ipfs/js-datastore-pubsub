@@ -24,7 +24,7 @@ import { stop } from '@libp2p/interfaces/startable'
  * @typedef {import('@libp2p/interface-peer-id').PeerId} PeerId
  * @typedef {import('@libp2p/interface-dht').ValidateFn} Validator
  * @typedef {import('../src/types').SubscriptionKeyFn} SubscriptionKeyFn
- * @typedef {import('@libp2p/components').Components} Components
+ * @typedef {import('./utils.js').Components} Components
  */
 
 // Always returning the expected values
@@ -67,13 +67,13 @@ describe('datastore-pubsub', function () {
 
     await connectPubsubNodes(componentsA, componentsB)
 
-    pubsubA = componentsA.getPubSub()
-    datastoreA = componentsA.getDatastore()
-    peerIdA = componentsA.getPeerId()
+    pubsubA = componentsA.pubsub
+    datastoreA = componentsA.datastore
+    peerIdA = componentsA.peerId
 
-    pubsubB = componentsB.getPubSub()
-    datastoreB = componentsB.getDatastore()
-    peerIdB = componentsB.getPeerId()
+    pubsubB = componentsB.pubsub
+    datastoreB = componentsB.datastore
+    peerIdB = componentsB.peerId
   })
 
   const value = 'value'
