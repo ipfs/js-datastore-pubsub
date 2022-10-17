@@ -1,53 +1,62 @@
 import pWaitFor from 'p-wait-for'
-import { FloodSub, multicodec } from '@libp2p/floodsub'
+import { floodsub, multicodec } from '@libp2p/floodsub'
 import { createEd25519PeerId } from '@libp2p/peer-id-factory'
 import { connectionPair, mockRegistrar, mockConnectionManager } from '@libp2p/interface-mocks'
-import { Components } from '@libp2p/components'
 import { MemoryDatastore } from 'datastore-core'
+import { start } from '@libp2p/interfaces/startable'
 
 /**
  * @typedef {import('@libp2p/interface-pubsub').PubSub} PubSub
  * @typedef {import('@libp2p/interface-peer-id').PeerId} PeerId
+ * @typedef {import('@libp2p/interface-registrar').Registrar} Registrar
+ * @typedef {import('interface-datastore').Datastore} Datastore
  */
 
 /**
+ * @typedef {object} Components
+ * @property {PeerId} peerId
+ * @property {Registrar} registrar
+ * @property {Datastore} datastore
+ * @property {PubSub} pubsub
+ *
  * As created by libp2p
  *
  * @returns {Promise<Components>}
  */
 export const createComponents = async () => {
-  const components = new Components({
+  /** @type {any} */
+  const components = {
     peerId: await createEd25519PeerId(),
     registrar: mockRegistrar(),
-    datastore: new MemoryDatastore(),
-    connectionManager: mockConnectionManager()
-  })
+    datastore: new MemoryDatastore()
+  }
 
-  const pubsub = new FloodSub({
+  components.connectionManager = mockConnectionManager(components)
+
+  const pubsub = floodsub({
     emitSelf: true
-  })
-  pubsub.init(components)
-  await pubsub.start()
+  })(components)
+  await start(pubsub)
 
-  components.setPubSub(pubsub)
+  components.pubsub = pubsub
 
   return components
 }
 
 /**
  *
- * @param {Components} componentsA
- * @param {Components} componentsB
+ * @param {{ peerId: PeerId, registrar: Registrar }} componentsA
+ * @param {{ peerId: PeerId, registrar: Registrar }} componentsB
  */
 export const connectPubsubNodes = async (componentsA, componentsB) => {
   // Notify peers of connection
   const [c0, c1] = connectionPair(componentsA, componentsB)
 
-  componentsA.getRegistrar().getTopologies(multicodec).forEach(topology => {
-    topology.onConnect(componentsB.getPeerId(), c0)
+  componentsA.registrar.getTopologies(multicodec).forEach(topology => {
+    topology.onConnect(componentsB.peerId, c0)
   })
-  componentsB.getRegistrar().getTopologies(multicodec).forEach(topology => {
-    topology.onConnect(componentsA.getPeerId(), c1)
+  componentsB.registrar.getTopologies(multicodec).forEach(topology => {
+    topology.onConnect(componentsA.peerId, c1)
   })
 }
 
