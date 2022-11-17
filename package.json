@@ -182,7 +182,7 @@
     "ipfs-core-types": "^0.12.1",
     "it-pair": "^2.0.2",
     "libp2p": "next",
-    "npm": "^8.10.0",
+    "npm": "^9.1.2",
     "p-wait-for": "^5.0.0",
     "peer-id": "^0.16.0",
     "rimraf": "^3.0.2",
