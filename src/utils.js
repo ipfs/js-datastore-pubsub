@@ -1,4 +1,4 @@
-import errcode from 'err-code'
+import { CodeError } from '@libp2p/interfaces/errors'
 import { toString as uint8ArrayToString } from 'uint8arrays/to-string'
 import { fromString as uint8ArrayFromString } from 'uint8arrays/from-string'
 
@@ -39,7 +39,7 @@ export function keyToTopic (key) {
  */
 export function topicToKey (topic) {
   if (topic.substring(0, namespace.length) !== namespace) {
-    throw errcode(new Error('topic received is not from a record'), 'ERR_TOPIC_IS_NOT_FROM_RECORD_NAMESPACE')
+    throw new CodeError('topic received is not from a record', 'ERR_TOPIC_IS_NOT_FROM_RECORD_NAMESPACE')
   }
 
   const key = topic.substring(namespace.length)
