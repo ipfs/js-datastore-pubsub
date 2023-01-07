@@ -1,3 +1,14 @@
+## [7.0.0](https://github.com/ipfs/js-datastore-pubsub/compare/v6.0.0...v7.0.0) (2023-01-07)
+
+
+### ⚠ BREAKING CHANGES
+
+* update multiformats to v11 (#207)
+
+### Dependencies
+
+* update multiformats to v11 ([#207](https://github.com/ipfs/js-datastore-pubsub/issues/207)) ([051e340](https://github.com/ipfs/js-datastore-pubsub/commit/051e340fa4c39fe7c1961b59cb84bba5bf8a3fb9))
+
 ## [6.0.0](https://github.com/ipfs/js-datastore-pubsub/compare/v5.0.0...v6.0.0) (2022-10-17)
 
 
