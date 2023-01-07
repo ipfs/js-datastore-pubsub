@@ -2,7 +2,7 @@ import { Key } from 'interface-datastore'
 import { BaseDatastore } from 'datastore-core'
 import { encodeBase32, keyToTopic, topicToKey } from './utils.js'
 import { equals as uint8ArrayEquals } from 'uint8arrays/equals'
-import errcode from 'err-code'
+import { CodeError } from '@libp2p/interfaces/errors'
 import { logger } from '@libp2p/logger'
 
 const log = logger('datastore-pubsub:publisher')
@@ -32,19 +32,19 @@ export class PubSubDatastore extends BaseDatastore {
     super()
 
     if (!validator) {
-      throw errcode(new TypeError('missing validator'), 'ERR_INVALID_PARAMETERS')
+      throw new CodeError('missing validator', 'ERR_INVALID_PARAMETERS')
     }
 
     if (typeof validator !== 'function') {
-      throw errcode(new TypeError('missing validate function'), 'ERR_INVALID_PARAMETERS')
+      throw new CodeError('missing validate function', 'ERR_INVALID_PARAMETERS')
     }
 
     if (typeof selector !== 'function') {
-      throw errcode(new TypeError('missing select function'), 'ERR_INVALID_PARAMETERS')
+      throw new CodeError('missing select function', 'ERR_INVALID_PARAMETERS')
     }
 
     if (subscriptionKeyFn && typeof subscriptionKeyFn !== 'function') {
-      throw errcode(new TypeError('invalid subscriptionKeyFn received'), 'ERR_INVALID_PARAMETERS')
+      throw new CodeError('invalid subscriptionKeyFn received', 'ERR_INVALID_PARAMETERS')
     }
 
     this._pubsub = pubsub
@@ -72,14 +72,14 @@ export class PubSubDatastore extends BaseDatastore {
       const errMsg = 'datastore key does not have a valid format'
 
       log.error(errMsg)
-      throw errcode(new Error(errMsg), 'ERR_INVALID_DATASTORE_KEY')
+      throw new CodeError(errMsg, 'ERR_INVALID_DATASTORE_KEY')
     }
 
     if (!(val instanceof Uint8Array)) {
       const errMsg = 'received value is not a Uint8Array'
 
       log.error(errMsg)
-      throw errcode(new Error(errMsg), 'ERR_INVALID_VALUE_RECEIVED')
+      throw new CodeError(errMsg, 'ERR_INVALID_VALUE_RECEIVED')
     }
 
     const stringifiedTopic = keyToTopic(key)
@@ -102,7 +102,7 @@ export class PubSubDatastore extends BaseDatastore {
       const errMsg = 'datastore key does not have a valid format'
 
       log.error(errMsg)
-      throw errcode(new Error(errMsg), 'ERR_INVALID_DATASTORE_KEY')
+      throw new CodeError(errMsg, 'ERR_INVALID_DATASTORE_KEY')
     }
 
     const stringifiedTopic = keyToTopic(key)
@@ -120,7 +120,7 @@ export class PubSubDatastore extends BaseDatastore {
       const errMsg = `cannot subscribe topic ${stringifiedTopic}`
 
       log.error(errMsg)
-      throw errcode(new Error(errMsg), 'ERR_SUBSCRIBING_TOPIC')
+      throw new CodeError(errMsg, 'ERR_SUBSCRIBING_TOPIC')
     }
     log(`subscribed values for key ${stringifiedTopic}`)
 
@@ -158,19 +158,19 @@ export class PubSubDatastore extends BaseDatastore {
         const errMsg = `unexpected error getting the ipns record for ${routingKey.toString()}`
 
         log.error(errMsg)
-        throw errcode(new Error(errMsg), 'ERR_UNEXPECTED_ERROR_GETTING_RECORD')
+        throw new CodeError(errMsg, 'ERR_UNEXPECTED_ERROR_GETTING_RECORD')
       }
       const errMsg = `local record requested was not found for ${routingKey.toString()}`
 
       log.error(errMsg)
-      throw errcode(new Error(errMsg), 'ERR_NOT_FOUND')
+      throw new CodeError(errMsg, 'ERR_NOT_FOUND')
     }
 
     if (!(dsVal instanceof Uint8Array)) {
       const errMsg = 'found record that we couldn\'t convert to a value'
 
       log.error(errMsg)
-      throw errcode(new Error(errMsg), 'ERR_INVALID_RECORD_RECEIVED')
+      throw new CodeError(errMsg, 'ERR_INVALID_RECORD_RECEIVED')
     }
 
     return dsVal
@@ -286,7 +286,7 @@ export class PubSubDatastore extends BaseDatastore {
       const errMsg = 'record received through pubsub is not valid'
 
       log.error(errMsg)
-      throw errcode(new Error(errMsg), 'ERR_NOT_VALID_RECORD')
+      throw new CodeError(errMsg, 'ERR_NOT_VALID_RECORD')
     }
 
     // Get Local record

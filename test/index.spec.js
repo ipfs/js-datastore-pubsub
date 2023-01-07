@@ -3,7 +3,7 @@
 import { expect } from 'aegir/chai'
 import sinon from 'sinon'
 import errcode from 'err-code'
-import isNode from 'detect-node'
+import { isNode } from 'aegir/env'
 import { toString as uint8ArrayToString } from 'uint8arrays/to-string'
 import { fromString as uint8ArrayFromString } from 'uint8arrays/from-string'
 import { PubSubDatastore } from '../src/index.js'
