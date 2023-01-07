@@ -2,7 +2,7 @@
 
 import { expect } from 'aegir/chai'
 import sinon from 'sinon'
-import errcode from 'err-code'
+import { CodeError } from '@libp2p/interfaces/errors'
 import { isNode } from 'aegir/env'
 import { toString as uint8ArrayToString } from 'uint8arrays/to-string'
 import { fromString as uint8ArrayFromString } from 'uint8arrays/from-string'
@@ -505,7 +505,7 @@ describe('datastore-pubsub', function () {
 
   it('should handle a unexpected error properly when getting from the datastore', async () => {
     const dsPubsubA = new PubSubDatastore(pubsubA, datastoreA, peerIdA, smoothValidator, smoothSelector)
-    const stub = sinon.stub(dsPubsubA._datastore, 'get').throws(errcode(new Error('Wut'), 'RANDOM_ERR'))
+    const stub = sinon.stub(dsPubsubA._datastore, 'get').throws(new CodeError('Wut', 'RANDOM_ERR'))
 
     // causes pubsub b to become subscribed to the topic
     await expect(dsPubsubA.get(key)).to.eventually.be.rejected().with.property('code', 'ERR_UNEXPECTED_ERROR_GETTING_RECORD')
