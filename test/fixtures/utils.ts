@@ -4,28 +4,25 @@ import { createEd25519PeerId } from '@libp2p/peer-id-factory'
 import { connectionPair, mockRegistrar, mockConnectionManager } from '@libp2p/interface-mocks'
 import { MemoryDatastore } from 'datastore-core'
 import { start } from '@libp2p/interfaces/startable'
+import type { PeerId } from '@libp2p/interface-peer-id'
+import type { Registrar } from '@libp2p/interface-registrar'
+import type { Datastore } from 'interface-datastore'
+import type { PubSub } from '@libp2p/interface-pubsub'
+import type { ConnectionManager } from '@libp2p/interface-connection-manager'
+
+export interface Components {
+  peerId: PeerId
+  registrar: Registrar
+  datastore: Datastore
+  pubsub: PubSub
+  connectionManager: ConnectionManager
+}
 
 /**
- * @typedef {import('@libp2p/interface-pubsub').PubSub} PubSub
- * @typedef {import('@libp2p/interface-peer-id').PeerId} PeerId
- * @typedef {import('@libp2p/interface-registrar').Registrar} Registrar
- * @typedef {import('interface-datastore').Datastore} Datastore
- */
-
-/**
- * @typedef {object} Components
- * @property {PeerId} peerId
- * @property {Registrar} registrar
- * @property {Datastore} datastore
- * @property {PubSub} pubsub
- *
  * As created by libp2p
- *
- * @returns {Promise<Components>}
  */
-export const createComponents = async () => {
-  /** @type {any} */
-  const components = {
+export const createComponents = async (): Promise<Components> => {
+  const components: any = {
     peerId: await createEd25519PeerId(),
     registrar: mockRegistrar(),
     datastore: new MemoryDatastore()
@@ -43,12 +40,7 @@ export const createComponents = async () => {
   return components
 }
 
-/**
- *
- * @param {{ peerId: PeerId, registrar: Registrar }} componentsA
- * @param {{ peerId: PeerId, registrar: Registrar }} componentsB
- */
-export const connectPubsubNodes = async (componentsA, componentsB) => {
+export const connectPubsubNodes = async (componentsA: Components, componentsB: Components): Promise<void> => {
   // Notify peers of connection
   const [c0, c1] = connectionPair(componentsA, componentsB)
 
@@ -62,10 +54,8 @@ export const connectPubsubNodes = async (componentsA, componentsB) => {
 
 /**
  * Wait for a condition to become true.  When its true, callback is called.
- *
- * @param {() => boolean} predicate
  */
-export const waitFor = predicate => pWaitFor(predicate, { interval: 100, timeout: 10000 })
+export const waitFor = async (predicate: () => boolean): Promise<void> => { await pWaitFor(predicate, { interval: 100, timeout: 10000 }) }
 
 /**
  * Wait until a peer subscribes a topic
@@ -74,9 +64,9 @@ export const waitFor = predicate => pWaitFor(predicate, { interval: 100, timeout
  * @param {PeerId} peer
  * @param {PubSub} node
  */
-export const waitForPeerToSubscribe = (topic, peer, node) => {
-  return pWaitFor(async () => {
-    const peers = await node.getSubscribers(topic)
+export const waitForPeerToSubscribe = async (topic: string, peer: PeerId, node: PubSub): Promise<void> => {
+  await pWaitFor(async () => {
+    const peers = node.getSubscribers(topic)
 
     if (peers.map(p => p.toString()).includes(peer.toString())) {
       return true
