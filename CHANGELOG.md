@@ -1,3 +1,24 @@
+## [8.0.0](https://github.com/ipfs/js-datastore-pubsub/compare/v7.0.0...v8.0.0) (2023-03-24)
+
+
+### ⚠ BREAKING CHANGES
+
+* This module is now ESM-only
+
+### Features
+
+* convert to typescript ([#220](https://github.com/ipfs/js-datastore-pubsub/issues/220)) ([7850947](https://github.com/ipfs/js-datastore-pubsub/commit/7850947f823e54bc8015a5a618776c0a974e6110))
+
+
+### Bug Fixes
+
+* update default export path ([2665a57](https://github.com/ipfs/js-datastore-pubsub/commit/2665a5774514e6ad913109ecb66e1f9b61060130))
+
+
+### Documentation
+
+* remove double contribute ([d5f2ef7](https://github.com/ipfs/js-datastore-pubsub/commit/d5f2ef7088e747227f3bf86c12e66fb0446ffcd5))
+
 ## [7.0.0](https://github.com/ipfs/js-datastore-pubsub/compare/v6.0.0...v7.0.0) (2023-01-07)
 
 
