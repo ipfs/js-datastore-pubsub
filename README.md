@@ -13,14 +13,13 @@
   - [Browser `<script>` tag](#browser-script-tag)
 - [Usage](#usage)
 - [API](#api)
-  - - [Setup](#setup)
+    - [Setup](#setup)
     - [Get](#get)
     - [Put](#put)
     - [Unsubscribe](#unsubscribe)
-- [Contribute](#contribute)
 - [API Docs](#api-docs)
 - [License](#license)
-- [Contribute](#contribute-1)
+- [Contribute](#contribute)
 
 ## Install
 
@@ -110,14 +109,6 @@ Arguments:
 - `key` (Uint8Array): a key representing a unique identifier of the object to publish.
 
 Returns `Promise<void>`
-
-## Contribute
-
-Feel free to join in. All welcome. Open an [issue](https://github.com/ipfs/js-ipns/issues)!
-
-This repository falls under the IPFS [Code of Conduct](https://github.com/ipfs/community/blob/master/code-of-conduct.md).
-
-[![](https://cdn.rawgit.com/jbenet/contribute-ipfs-gif/master/img/contribute.gif)](https://github.com/ipfs/community/blob/master/CONTRIBUTING.md)
 
 ## API Docs
 
