@@ -48,20 +48,20 @@
 <a href="#install" id="install" style="color: inherit; text-decoration: none;">
   <h2>Install</h2>
 </a>
-<pre><code class="language-console"><span class="hl-0">$</span><span class="hl-1"> </span><span class="hl-2">npm</span><span class="hl-1"> </span><span class="hl-2">i</span><span class="hl-1"> </span><span class="hl-2">datastore-pubsub</span>
+<pre><code class="language-console"><span class="hl-0">$ npm i datastore-pubsub</span>
 </code></pre>
 
 <a href="#browser-ltscriptgt-tag" id="browser-ltscriptgt-tag" style="color: inherit; text-decoration: none;">
   <h3>Browser <code>&lt;script&gt;</code> tag</h3>
 </a>
 <p>Loading this module through a script tag will make it&#39;s exports available as <code>DatastorePubsub</code> in the global namespace.</p>
-<pre><code class="language-html"><span class="hl-3">&lt;</span><span class="hl-4">script</span><span class="hl-5"> </span><span class="hl-6">src</span><span class="hl-5">=</span><span class="hl-7">&quot;https://unpkg.com/datastore-pubsub/dist/index.min.js&quot;</span><span class="hl-3">&gt;&lt;/</span><span class="hl-4">script</span><span class="hl-3">&gt;</span>
+<pre><code class="language-html"><span class="hl-1">&lt;</span><span class="hl-2">script</span><span class="hl-3"> </span><span class="hl-4">src</span><span class="hl-3">=</span><span class="hl-5">&quot;https://unpkg.com/datastore-pubsub/dist/index.min.js&quot;</span><span class="hl-1">&gt;&lt;/</span><span class="hl-2">script</span><span class="hl-1">&gt;</span>
 </code></pre>
 
 <a href="#usage" id="usage" style="color: inherit; text-decoration: none;">
   <h2>Usage</h2>
 </a>
-<pre><code class="language-js"><span class="hl-8">import</span><span class="hl-1"> { </span><span class="hl-9">PubSubDatastore</span><span class="hl-1"> } </span><span class="hl-8">from</span><span class="hl-1"> </span><span class="hl-2">&#39;datastore-pubsub&#39;</span><br/><br/><span class="hl-10">const</span><span class="hl-1"> </span><span class="hl-11">dsPubsub</span><span class="hl-1"> = </span><span class="hl-10">new</span><span class="hl-1"> </span><span class="hl-0">PubSubDatastore</span><span class="hl-1">(</span><span class="hl-9">pubsub</span><span class="hl-1">, </span><span class="hl-9">datastore</span><span class="hl-1">, </span><span class="hl-9">peerId</span><span class="hl-1">, </span><span class="hl-9">validator</span><span class="hl-1">)</span>
+<pre><code class="language-js"><span class="hl-6">import</span><span class="hl-0"> { </span><span class="hl-7">PubSubDatastore</span><span class="hl-0"> } </span><span class="hl-6">from</span><span class="hl-0"> </span><span class="hl-8">&#39;datastore-pubsub&#39;</span><br/><br/><span class="hl-9">const</span><span class="hl-0"> </span><span class="hl-10">dsPubsub</span><span class="hl-0"> = </span><span class="hl-9">new</span><span class="hl-0"> </span><span class="hl-11">PubSubDatastore</span><span class="hl-0">(</span><span class="hl-7">pubsub</span><span class="hl-0">, </span><span class="hl-7">datastore</span><span class="hl-0">, </span><span class="hl-7">peerId</span><span class="hl-0">, </span><span class="hl-7">validator</span><span class="hl-0">)</span>
 </code></pre>
 
 <a href="#api" id="api" style="color: inherit; text-decoration: none;">
@@ -71,7 +71,7 @@
 <a href="#setup" id="setup" style="color: inherit; text-decoration: none;">
   <h4>Setup</h4>
 </a>
-<pre><code class="language-js"><span class="hl-10">new</span><span class="hl-1"> </span><span class="hl-0">PubSubDatastore</span><span class="hl-1">(</span><span class="hl-9">pubsub</span><span class="hl-1">, </span><span class="hl-9">datastore</span><span class="hl-1">, </span><span class="hl-9">peerId</span><span class="hl-1">, </span><span class="hl-9">validator</span><span class="hl-1">, </span><span class="hl-9">subscriptionKeyFn</span><span class="hl-1">)</span>
+<pre><code class="language-js"><span class="hl-9">new</span><span class="hl-0"> </span><span class="hl-11">PubSubDatastore</span><span class="hl-0">(</span><span class="hl-7">pubsub</span><span class="hl-0">, </span><span class="hl-7">datastore</span><span class="hl-0">, </span><span class="hl-7">peerId</span><span class="hl-0">, </span><span class="hl-7">validator</span><span class="hl-0">, </span><span class="hl-7">subscriptionKeyFn</span><span class="hl-0">)</span>
 </code></pre>
 <p>Creates a DatastorePubsub instance.</p>
 <p>Arguments:</p>
@@ -83,13 +83,13 @@
 <li><code>subscriptionKeyFn</code> (function): function to manipulate the key topic received according to the needs, as well as to block the message received to be published.</li>
 </ul>
 <p>Note: <code>validator</code> object must be composed by two functions, <code>validate (record: uint8Array, peerId: PeerId) =&gt; boolean</code> and <code>select (received: uint8Array, current: uint8Array) =&gt; boolean</code>. <code>validate</code> aims to verify if a new record received by pubsub is valid to be stored locally by the node. If it is valid and the node already has a local record stored, <code>select</code> is the function provided to be responsible for deciding which record is the best (newer) between the already stored and the received through pubsub. A <code>validator</code> example can be found at: TODO (js-ipns)</p>
-<pre><code class="language-js"><span class="hl-10">const</span><span class="hl-1"> </span><span class="hl-11">dsPubsub</span><span class="hl-1"> = </span><span class="hl-10">new</span><span class="hl-1"> </span><span class="hl-0">DatastorePubsub</span><span class="hl-1">(</span><span class="hl-9">pubsub</span><span class="hl-1">, </span><span class="hl-9">datastore</span><span class="hl-1">, </span><span class="hl-9">peerId</span><span class="hl-1">, </span><span class="hl-9">validator</span><span class="hl-1">)</span>
+<pre><code class="language-js"><span class="hl-9">const</span><span class="hl-0"> </span><span class="hl-10">dsPubsub</span><span class="hl-0"> = </span><span class="hl-9">new</span><span class="hl-0"> </span><span class="hl-11">DatastorePubsub</span><span class="hl-0">(</span><span class="hl-7">pubsub</span><span class="hl-0">, </span><span class="hl-7">datastore</span><span class="hl-0">, </span><span class="hl-7">peerId</span><span class="hl-0">, </span><span class="hl-7">validator</span><span class="hl-0">)</span>
 </code></pre>
 
 <a href="#get" id="get" style="color: inherit; text-decoration: none;">
   <h4>Get</h4>
 </a>
-<pre><code class="language-js"><span class="hl-10">const</span><span class="hl-1"> </span><span class="hl-11">buf</span><span class="hl-1"> = </span><span class="hl-8">await</span><span class="hl-1"> </span><span class="hl-9">dsPubsub</span><span class="hl-1">.</span><span class="hl-0">get</span><span class="hl-1">(</span><span class="hl-9">key</span><span class="hl-1">)</span>
+<pre><code class="language-js"><span class="hl-9">const</span><span class="hl-0"> </span><span class="hl-10">buf</span><span class="hl-0"> = </span><span class="hl-6">await</span><span class="hl-0"> </span><span class="hl-7">dsPubsub</span><span class="hl-0">.</span><span class="hl-11">get</span><span class="hl-0">(</span><span class="hl-7">key</span><span class="hl-0">)</span>
 </code></pre>
 <p>Try to subscribe a topic with Pubsub and receive the current local value if available.</p>
 <p>Arguments:</p>
@@ -101,7 +101,7 @@
 <a href="#put" id="put" style="color: inherit; text-decoration: none;">
   <h4>Put</h4>
 </a>
-<pre><code class="language-js"><span class="hl-8">await</span><span class="hl-1"> </span><span class="hl-9">dsPubsub</span><span class="hl-1">.</span><span class="hl-0">put</span><span class="hl-1">(</span><span class="hl-9">key</span><span class="hl-1">, </span><span class="hl-9">val</span><span class="hl-1">)</span>
+<pre><code class="language-js"><span class="hl-6">await</span><span class="hl-0"> </span><span class="hl-7">dsPubsub</span><span class="hl-0">.</span><span class="hl-11">put</span><span class="hl-0">(</span><span class="hl-7">key</span><span class="hl-0">, </span><span class="hl-7">val</span><span class="hl-0">)</span>
 </code></pre>
 <p>Publishes a value through pubsub.</p>
 <p>Arguments:</p>
@@ -114,7 +114,7 @@
 <a href="#unsubscribe" id="unsubscribe" style="color: inherit; text-decoration: none;">
   <h4>Unsubscribe</h4>
 </a>
-<pre><code class="language-js"><span class="hl-8">await</span><span class="hl-1"> </span><span class="hl-9">dsPubsub</span><span class="hl-1">.</span><span class="hl-0">unsubscribe</span><span class="hl-1">(</span><span class="hl-9">key</span><span class="hl-1">)</span>
+<pre><code class="language-js"><span class="hl-6">await</span><span class="hl-0"> </span><span class="hl-7">dsPubsub</span><span class="hl-0">.</span><span class="hl-11">unsubscribe</span><span class="hl-0">(</span><span class="hl-7">key</span><span class="hl-0">)</span>
 </code></pre>
 <p>Unsubscribe a previously subscribe value.</p>
 <p>Arguments:</p>
